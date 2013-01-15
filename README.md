@@ -10,6 +10,8 @@ Like Chalk, the name Nak comes from one of my son's stuffed elephants. (He reall
 
 ## Using Nak
 
+**NOTE: The dependency is not quite up yet, but will be soon.**
+
 The latest stable release is 1.0, which corresponds quite directly to the Maxent part of Apache OpenNLP v1.5.3. 
 
 In SBT:

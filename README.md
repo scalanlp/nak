@@ -10,8 +10,6 @@ Like Chalk, the name Nak comes from one of my son's stuffed elephants. (He reall
 
 ## Using Nak
 
-**NOTE: The dependency is not quite up yet, but will be soon.**
-
 The latest stable release is 1.0, which corresponds quite directly to the Maxent part of Apache OpenNLP v1.5.3. 
 
 In SBT:
@@ -75,12 +73,6 @@ Documentation for SBT is at <http://www.scala-sbt.org/>
 Note: if you have SBT already installed on your system, you can
 also just call it directly with "sbt" in `NAK_DIR`.
 
-
-## Trying it out
-
-Assuming you have completed all of the above steps, including running the "compile" action in SBT, you should now be able to try out some examples. There is no documentation specific to Nak at this time, but you should be able to follow the OpenNLP documentation:
-
-<http://opennlp.apache.org/documentation/1.5.2-incubating/manual/opennlp.html>
 
 # Questions or suggestions?
 

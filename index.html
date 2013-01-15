@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Nak by jasonbaldridge</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/jasonbaldridge/nak">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/jasonbaldridge/nak/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/jasonbaldridge/nak/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Nak</h1>
+          <p>The Nak Machine Learning Library</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/jasonbaldridge">jasonbaldridge</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>Nak</h1>
+
+<p>Author: <strong>Jason Baldridge</strong> (<a href="mailto:jasonbaldridge@gmail.com">jasonbaldridge@gmail.com</a>)</p>
+
+<h2>Introduction</h2>
+
+<p>Nak is a library for machine learning and related tasks. It is formed from the OpenNLP Maxent package, and my intent is to evolve it as a Scala library with further capabilities. It will be developed in particular with the natural language processing library <a href="https://github.com/jasonbaldridge/chalk">Chalk</a> in mind.</p>
+
+<p>Like Chalk, the name Nak comes from one of my son's stuffed elephants. (He really likes elephants.)</p>
+
+<h2>Using Nak</h2>
+
+<p><strong>NOTE: The dependency is not quite up yet, but will be soon.</strong></p>
+
+<p>The latest stable release is 1.0, which corresponds quite directly to the Maxent part of Apache OpenNLP v1.5.3. </p>
+
+<p>In SBT:</p>
+
+<pre><code>libraryDependencies += "com.jasonbaldridge" % "nak" % "1.0"
+</code></pre>
+
+<p>In Maven:</p>
+
+<pre><code>&lt;dependency&gt;
+   &lt;groupId&gt;com.jasonbaldridge&lt;/groupId&gt;
+   &lt;artifactId&gt;nak&lt;/artifactId&gt;
+   &lt;version&gt;1.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+
+<h2>Requirements</h2>
+
+<ul>
+<li>Version 1.6 of the Java 2 SDK (<a href="http://java.sun.com">http://java.sun.com</a>)</li>
+</ul><h2>Configuring your environment variables</h2>
+
+<p>The easiest thing to do is to set the environment variables <code>JAVA_HOME</code>
+and <code>NAK_DIR</code> to the relevant locations on your system. Set <code>JAVA_HOME</code>
+to match the top level directory containing the Java installation you
+want to use.</p>
+
+<p>Next, add the directory <code>NAK_DIR/bin</code> to your path. For example, you
+can set the path in your <code>.bashrc</code> file as follows:</p>
+
+<pre><code>export PATH=$PATH:$NAK_DIR/bin
+</code></pre>
+
+<p>Once you have taken care of these three things, you should be able to
+build and use Nak.</p>
+
+<h2>Building the system from source</h2>
+
+<p>Nak uses SBT (Simple Build Tool) with a standard directory
+structure.  To build Nak, type (in the <code>$NAK_DIR</code> directory):</p>
+
+<pre><code>$ ./build update compile
+</code></pre>
+
+<p>This will compile the source files and put them in
+<code>./target/classes</code>. If this is your first time running it, you will see
+messages about Scala being downloaded -- this is fine and
+expected. Once that is over, the Nak code will be compiled.</p>
+
+<p>To try out other build targets, do:</p>
+
+<pre><code>$ ./build
+</code></pre>
+
+<p>This will drop you into the SBT interface. To see the actions that are
+possible, hit the TAB key. (In general, you can do auto-completion on
+any command prefix in SBT, hurrah!)</p>
+
+<p>To make sure all the tests pass, do:</p>
+
+<pre><code>$ ./build test
+</code></pre>
+
+<p>Documentation for SBT is at <a href="http://www.scala-sbt.org/">http://www.scala-sbt.org/</a></p>
+
+<p>Note: if you have SBT already installed on your system, you can
+also just call it directly with "sbt" in <code>NAK_DIR</code>.</p>
+
+<h2>Trying it out</h2>
+
+<p>Assuming you have completed all of the above steps, including running the "compile" action in SBT, you should now be able to try out some examples. There is no documentation specific to Nak at this time, but you should be able to follow the OpenNLP documentation:</p>
+
+<p><a href="http://opennlp.apache.org/documentation/1.5.2-incubating/manual/opennlp.html">http://opennlp.apache.org/documentation/1.5.2-incubating/manual/opennlp.html</a></p>
+
+<h1>Questions or suggestions?</h1>
+
+<p>Email Jason Baldridge: <a href="mailto:jasonbaldridge@gmail.com">jasonbaldridge@gmail.com</a></p>
+
+<p>Or, create an issue: <a href="https://github.com/jasonbaldridge/nak/issues">https://github.com/jasonbaldridge/nak/issues</a></p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>

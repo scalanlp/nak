@@ -10,10 +10,6 @@ crossPaths := false
 
 retrieveManaged := true
 
-resolvers ++= Seq(
-  "opennlp sourceforge repo" at "http://opennlp.sourceforge.net/maven2"
-)
-
 // Original OpenNLP dependencies
 libraryDependencies ++= Seq(
   "com.novocode" % "junit-interface" % "0.8" % "test->default"

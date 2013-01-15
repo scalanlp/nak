@@ -8,9 +8,6 @@ scalaVersion := "2.9.2"
 
 crossPaths := false
 
-retrieveManaged := true
-
-// Original OpenNLP dependencies
 libraryDependencies ++= Seq(
   "com.novocode" % "junit-interface" % "0.8" % "test->default"
 )

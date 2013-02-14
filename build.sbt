@@ -9,7 +9,9 @@ scalaVersion := "2.10.0"
 crossPaths := false
 
 libraryDependencies ++= Seq(
-  "com.novocode" % "junit-interface" % "0.8" % "test->default"
+  "com.novocode" % "junit-interface" % "0.8" % "test->default",
+  "commons-logging" % "commons-logging" % "1.1.1",
+  "log4j" % "log4j" % "1.2.16"
 )
 
 publishTo <<= version { v: String =>

@@ -6,9 +6,9 @@ Authors:
 
 ## Introduction
 
-Nak is a library for machine learning and related tasks. It is formed from the OpenNLP Maxent package, and the intent is to evolve it as a Scala library with further capabilities. It will be developed in particular with the natural language processing library [Chalk](https://github.com/scalanlp/chalk) in mind. Use of [Breeze](https://github.com/scalanlp/breeze) is likely in Nak's future.
+Nak is a library for machine learning and related tasks, with a focus on having an easy to use API for some standard algorithms. It is formed from the OpenNLP Maxent package, and the intent is to evolve it as a Scala library with further capabilities. It will be developed in particular with the natural language processing library [Chalk](https://github.com/scalanlp/chalk) in mind. Use of [Breeze](https://github.com/scalanlp/breeze) is likely in Nak's future.
 
-Like Chalk, the name Nak comes from one of my Jason's stuffed elephants. (He really likes elephants.)
+Like Chalk, the name Nak comes from one of Jason's son's stuffed elephants. (He really likes elephants.)
 
 ## Using Nak
 

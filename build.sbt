@@ -2,9 +2,9 @@ name := "nak"
 
 version := "1.1.0-SNAPSHOT"
 
-organization := "com.jasonbaldridge"
+organization := "org.scalanlp"
 
-scalaVersion := "2.9.2"
+scalaVersion := "2.10.0"
 
 crossPaths := false
 
@@ -36,8 +36,8 @@ pomExtra := (
     </license>
   </licenses>
   <scm>
-    <url>git@github.com:jasonbaldridge/nak.git</url>
-    <connection>scm:git:git@github.com:jasonbaldridge/nak.git</connection>
+    <url>git@github.com:scalanlp/nak.git</url>
+    <connection>scm:git:git@github.com:scalanlp/nak.git</connection>
   </scm>
   <developers>
     <developer>

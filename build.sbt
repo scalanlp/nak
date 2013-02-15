@@ -29,7 +29,7 @@ publishArtifact in Test := false
 pomIncludeRepository := { _ => false }
 
 pomExtra := (
-  <url>https://github.com/scalanlp/nak</url>
+  <url>http://scalanlp.org/</url>
   <licenses>
     <license>
       <name>Apache License 2.0</name>

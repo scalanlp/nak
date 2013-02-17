@@ -1,3 +1,18 @@
+/*
+ Copyright 2013 Jason Baldridge
+
+ Licensed under the Apache License, Version 2.0 (the "License")
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
 package nak.cluster
 
 import org.apache.commons.logging.LogFactory
@@ -13,23 +28,26 @@ import nak.util.CollectionUtil._
  * @param distance  the DistanceFunction to use to compute distance between pairs of points
  * @param maxChangeInDispersion each iteration of the algorithm produces a dispersion value, which is the squared sum distance from each centroid to the points it is responsible for. The minChangeInDispersion is a value that tells the algorithm to stop when change from one iteration to the next is less than this value.
  * @param maxIterations the maximum number of iterations to run k-means for
+ *
+ * @author jasonbaldridge
  */
 class Kmeans(
   points: IndexedSeq[Point],
   distance: DistanceFunction,
   minChangeInDispersion: Double = 0.0001,
-  maxIterations: Int = 100) {
+  maxIterations: Int = 100,
+  fixedSeedForRandom: Boolean = false
+) {
 
   private val LOG = LogFactory.getLog(Kmeans.getClass)
 
   private[this] val numDimensions = points.head.numDimensions
   private[this] val origin = Point(IndexedSeq.fill(numDimensions)(0.0))
 
-  // Actually, this should be "truly" random, but it is seeded with 13 to
-  // ensure consistency for homework. See the commented out line for a seed
-  // based on the current time.
-  private[this] val random = new util.Random(13)
-  //private[this] val random = new util.Random(compat.Platform.currentTime)
+  // Seed with 13 if consistency across runs is required.
+  private[this] val random = 
+    if (fixedSeedForRandom) new util.Random(13)
+    else new util.Random(compat.Platform.currentTime)
 
   /**
    * Run the k-means algorithm on this set of points for some given k.
@@ -56,7 +74,9 @@ class Kmeans(
   /**
    * Run the k-means algorithm starting from the given set of centroids.
    *
-   * @return A pair, the first element of which is the dispersion for the best set of centroids found, and the second element of which is that set of centroids.
+   * @return A pair, the first element of which is the dispersion for the
+   * best set of centroids found, and the second element of which is that
+   * set of centroids.
    */
   def moveCentroids(centroids: IndexedSeq[Point]): (Double, IndexedSeq[Point]) = {
 
@@ -117,8 +137,7 @@ class Kmeans(
   /**
    * Randomly choose k of the points as initial centroids.
    */
-  private[this] def chooseRandomCentroids(k: Int) = {
+  private[this] def chooseRandomCentroids(k: Int) =
     random.shuffle(points).take(k)
-  }
 
 }

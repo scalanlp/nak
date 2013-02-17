@@ -1,3 +1,18 @@
+/*
+ Copyright 2013 Jason Baldridge
+
+ Licensed under the Apache License, Version 2.0 (the "License")
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
 package nak.cluster
 
 import pca_transform.PCA
@@ -8,9 +23,11 @@ import Jama.Matrix
  *
  * @param coord  A sequence of Doubles that define this point's coordinates
  *               in some space.
+ *
+ * @author jasonbaldridge
  */
 case class Point(val coord: IndexedSeq[Double]) {
-  import scala.math.sqrt
+  import math.sqrt
 
   // Zip the coordinates of this Point with those of another.
   def zip(that: Point) = this.coord.zip(that.coord)
@@ -47,9 +64,7 @@ case class Point(val coord: IndexedSeq[Double]) {
   override def toString = "[" + coord.mkString(",") + "]"
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Distance functions
-///////////////////////////////////////////////////////////////////////////////
+/* -------------------- Distance Functions -------------------- */
 
 /**
  * A trait for distance functions, which take two Points as arguments and
@@ -63,9 +78,9 @@ trait DistanceFunction extends ((Point, Point) => Double)
  */
 object DistanceFunction {
   def apply(description: String) = description match {
-    case "cosine" => CosineDistance
-    case "manhattan" => ManhattanDistance
-    case "euclidean" => EuclideanDistance
+    case "c" | "cosine" => CosineDistance
+    case "m" | "manhattan" => ManhattanDistance
+    case "e" | "euclidean" => EuclideanDistance
     case _ => throw new MatchError("Invalid distance function: " + description)
   }
 }
@@ -92,9 +107,7 @@ object EuclideanDistance extends DistanceFunction {
   def apply(x: Point, y: Point) = (x - y).norm
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Transformation functions
-///////////////////////////////////////////////////////////////////////////////
+/* -------------------- Transformation Functions -------------------- */
 
 /**
  * A trait for functions that transform a set of points from one space to
@@ -108,9 +121,9 @@ trait PointTransformer extends (IndexedSeq[Point] => IndexedSeq[Point])
  */
 object PointTransformer {
   def apply(description: String, points: IndexedSeq[Point]) = description match {
-    case "ident" => new IdentityTransformer
-    case "zscore" => ZscoreTransformer(points)
-    case "pca" => PcaTransformer(points)
+    case "i" | "ident" => new IdentityTransformer
+    case "z" | "zscore" => ZscoreTransformer(points)
+    case "p" | "pca" => PcaTransformer(points)
     case _ => throw new MatchError("Invalid transformer type: " + description)
   }
 }

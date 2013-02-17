@@ -11,7 +11,8 @@ crossPaths := false
 libraryDependencies ++= Seq(
   "com.novocode" % "junit-interface" % "0.8" % "test->default",
   "commons-logging" % "commons-logging" % "1.1.1",
-  "log4j" % "log4j" % "1.2.16"
+  "log4j" % "log4j" % "1.2.16",
+  "gov.nist.math" % "jama" % "1.0.2"
 )
 
 publishTo <<= version { v: String =>

@@ -10,21 +10,31 @@ Nak is a library for machine learning and related tasks, with a focus on having 
 
 Like Chalk, the name Nak comes from one of Jason's son's stuffed elephants. (He really likes elephants.)
 
-## Using Nak
+## What's inside
 
-The latest stable release is 1.0, which corresponds quite directly to the Maxent part of Apache OpenNLP v1.5.3. 
+The latest stable release of Nak is 1.1.0. It includes:
+* The classification code from the OpenNLP Maxent package, slightly reorganized.
+* The k-means clustering code from Scalabha.
+
+## Using Nak
 
 In SBT:
 
-    libraryDependencies += "com.jasonbaldridge" % "nak" % "1.0"
+    libraryDependencies += "org.scalanlp" % "nak" % "1.1.0"
 
 In Maven:
 
     <dependency>
-       <groupId>com.jasonbaldridge</groupId>
+       <groupId>org.scalanlp</groupId>
        <artifactId>nak</artifactId>
-       <version>1.0</version>
+       <version>1.1.0</version>
     </dependency>
+
+**Note**: There is one dependency that won't get pulled along: pca_transform-0.7.2.jar in the lib directory is not available on any repository, so you'll need to add that to your classpath by hand if (and only if) you want to be able to use PCA transformations for input to k-means.
+
+Note that the domain has changed from `com.jasonbaldridge` (v1.0) to `org.scalanlp` now.
+
+There is no dedicated documentation for Nak as yet, but you can see some use of the k-means clustering code in [homework three](https://github.com/utcompling/applied-nlp/wiki/Homework3) for Jason's [Applied NLP course](https://github.com/utcompling/applied-nlp). Future homeworks will cover classification and more, using Nak.
 
 ## Requirements
 
@@ -74,7 +84,6 @@ Documentation for SBT is at <http://www.scala-sbt.org/>
 
 Note: if you have SBT already installed on your system, you can
 also just call it directly with "sbt" in `NAK_DIR`.
-
 
 # Questions or suggestions?
 

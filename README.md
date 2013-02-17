@@ -30,11 +30,11 @@ In Maven:
        <version>1.1.0</version>
     </dependency>
 
+Note that the domain has changed from **com.jasonbaldridge** (v1.0) to **org.scalanlp** now.
+
 **Note**: There is one dependency that won't get pulled along: pca_transform-0.7.2.jar in the lib directory is not available on any repository, so you'll need to add that to your classpath by hand if (and only if) you want to be able to use PCA transformations for input to k-means.
 
-Note that the domain has changed from `com.jasonbaldridge` (v1.0) to `org.scalanlp` now.
-
-There is no dedicated documentation for Nak as yet, but you can see some use of the k-means clustering code in [homework three](https://github.com/utcompling/applied-nlp/wiki/Homework3) for Jason's [Applied NLP course](https://github.com/utcompling/applied-nlp). Future homeworks will cover classification and more, using Nak.
+There is no dedicated documentation for Nak as yet, but you can see some use of the k-means clustering code in [homework three](https://github.com/utcompling/applied-nlp/wiki/Homework3) for Jason's [Applied NLP course](https://github.com/utcompling/applied-nlp/wiki). Future homeworks will cover classification and more, using Nak.
 
 ## Requirements
 
@@ -89,6 +89,6 @@ also just call it directly with "sbt" in `NAK_DIR`.
 
 Email Jason Baldridge: <jasonbaldridge@gmail.com>
 
-Or, create an issue: <https://github.com/jasonbaldridge/nak/issues>
+Or, create an issue: <https://github.com/scalanlp/nak/issues>
 
 

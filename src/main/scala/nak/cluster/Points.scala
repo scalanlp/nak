@@ -162,6 +162,7 @@ class ZscoreTransformer(
   def apply(points: IndexedSeq[Point]): IndexedSeq[Point] = {
     points.map { point =>
       val transformed = point.coord.zip(means.zip(standardDeviations)).map {
+        case (x, (mean, 0.0)) => 0.0
         case (x, (mean, sdev)) => (x - mean) / sdev
       }
       Point(transformed)

@@ -9,10 +9,9 @@ fi
 
 if [ -z $JAVA_MEM_FLAG ] 
 then
-    JAVA_MEM_FLAG=-Xmx4g
+    JAVA_MEM_FLAG=-Xmx8g
 fi
 
-#JARS="`find $HOME/.ivy2/ -name '*.jar' -print | tr '\n' ':'`"
 MANAGED_JARS="`find $NAK_DIR/lib_managed -name '*.jar' -print | tr '\n' ':'`"
 
 SCALA_LIB="$HOME/.sbt/boot/scala-2.10.0/lib/scala-library.jar"
@@ -28,7 +27,7 @@ shift
 help()
 {
 cat <<EOF
-nak 1.1.0 commands: 
+nak 1.1.1 commands: 
 
   run           run the main method of a given class
 

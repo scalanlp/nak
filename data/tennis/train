@@ -1,0 +1,14 @@
+Outlook=Sunny,Temperature=Hot,Humidity=High,Wind=Weak,No
+Outlook=Sunny,Temperature=Hot,Humidity=High,Wind=Strong,No
+Outlook=Overcast,Temperature=Hot,Humidity=High,Wind=Weak,Yes
+Outlook=Rain,Temperature=Mild,Humidity=High,Wind=Weak,Yes
+Outlook=Rain,Temperature=Cool,Humidity=Normal,Wind=Weak,Yes
+Outlook=Rain,Temperature=Cool,Humidity=Normal,Wind=Strong,No
+Outlook=Overcast,Temperature=Cool,Humidity=Normal,Wind=Strong,Yes
+Outlook=Sunny,Temperature=Mild,Humidity=High,Wind=Weak,No
+Outlook=Sunny,Temperature=Cool,Humidity=Normal,Wind=Weak,Yes
+Outlook=Rain,Temperature=Mild,Humidity=Normal,Wind=Weak,Yes
+Outlook=Sunny,Temperature=Mild,Humidity=Normal,Wind=Strong,Yes
+Outlook=Overcast,Temperature=Mild,Humidity=High,Wind=Strong,Yes
+Outlook=Overcast,Temperature=Hot,Humidity=Normal,Wind=Weak,Yes
+Outlook=Rain,Temperature=Mild,Humidity=High,Wind=Strong,No

@@ -6,6 +6,8 @@ organization := "org.scalanlp"
 
 scalaVersion := "2.10.0"
 
+retrieveManaged := true
+
 crossPaths := false
 
 libraryDependencies ++= Seq(

@@ -1,6 +1,6 @@
 name := "nak"
 
-version := "1.1.0"
+version := "1.1.1-SNAPSHOT"
 
 organization := "org.scalanlp"
 
@@ -12,7 +12,8 @@ libraryDependencies ++= Seq(
   "com.novocode" % "junit-interface" % "0.8" % "test->default",
   "commons-logging" % "commons-logging" % "1.1.1",
   "log4j" % "log4j" % "1.2.16",
-  "gov.nist.math" % "jama" % "1.0.2"
+  "gov.nist.math" % "jama" % "1.0.2",
+  "de.bwaldvogel" % "liblinear" % "1.92"
 )
 
 publishTo <<= version { v: String =>

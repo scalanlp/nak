@@ -26,9 +26,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-import nak.model.DataIndexer;
-import nak.model.OnePassRealValueDataIndexer;
-import nak.model.RealValueFileEventStream;
+import nak.data.DataIndexer;
+import nak.data.OnePassRealValueDataIndexer;
+import nak.data.RealValueFileEventStream;
 import nak.quasinewton.LogLikelihoodFunction;
 
 import org.junit.Test;

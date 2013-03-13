@@ -25,10 +25,11 @@ import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.util.Map;
 
-import nak.model.AbstractModel;
-import nak.model.Context;
-import nak.model.EvalParameters;
-import nak.model.IndexHashTable;
+import nak.core.AbstractModel;
+import nak.core.Context;
+import nak.core.EvalParameters;
+import nak.io.PerceptronModelReader;
+import nak.util.IndexHashTable;
 
 
 

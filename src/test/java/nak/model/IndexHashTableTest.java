@@ -17,7 +17,7 @@
 
 package nak.model;
 
-import nak.model.IndexHashTable;
+import nak.util.IndexHashTable;
 import junit.framework.TestCase;
 
 public class IndexHashTableTest extends TestCase {

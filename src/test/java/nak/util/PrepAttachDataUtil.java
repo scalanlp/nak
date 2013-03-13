@@ -26,10 +26,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import nak.model.AbstractModel;
-import nak.model.Event;
-import nak.model.EventStream;
-import nak.model.ListEventStream;
+import nak.core.AbstractModel;
+import nak.core.Event;
+import nak.data.EventStream;
+import nak.data.ListEventStream;
 import nak.perceptron.PerceptronPrepAttachTest;
 
 

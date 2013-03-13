@@ -28,13 +28,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import nak.model.DataIndexer;
-import nak.model.EvalParameters;
-import nak.model.EventStream;
-import nak.model.MutableContext;
-import nak.model.OnePassDataIndexer;
-import nak.model.Prior;
-import nak.model.UniformPrior;
+import nak.core.EvalParameters;
+import nak.core.MutableContext;
+import nak.core.Prior;
+import nak.core.UniformPrior;
+import nak.data.DataIndexer;
+import nak.data.EventStream;
+import nak.data.OnePassDataIndexer;
 
 
 

@@ -19,13 +19,13 @@ package nak.maxent;
 
 import java.io.StringReader;
 
+import nak.core.LinearModel;
+import nak.data.EventStream;
+import nak.data.OnePassRealValueDataIndexer;
+import nak.data.PlainTextByLineDataStream;
+import nak.data.RealBasicEventStream;
+import nak.data.RealValueFileEventStream;
 import nak.maxent.GIS;
-import nak.maxent.PlainTextByLineDataStream;
-import nak.maxent.RealBasicEventStream;
-import nak.model.EventStream;
-import nak.model.LinearModel;
-import nak.model.OnePassRealValueDataIndexer;
-import nak.model.RealValueFileEventStream;
 
 import junit.framework.TestCase;
 

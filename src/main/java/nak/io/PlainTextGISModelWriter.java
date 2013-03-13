@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.zip.GZIPOutputStream;
 
-import nak.model.AbstractModel;
+import nak.core.AbstractModel;
 
 
 

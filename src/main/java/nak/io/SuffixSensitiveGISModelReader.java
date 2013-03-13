@@ -22,7 +22,7 @@ package nak.io;
 import java.io.File;
 import java.io.IOException;
 
-import nak.model.AbstractModel;
+import nak.core.AbstractModel;
 
 
 

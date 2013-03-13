@@ -19,10 +19,10 @@
 
 package nak.perceptron;
 
-import nak.model.AbstractModel;
-import nak.model.DataIndexer;
-import nak.model.EvalParameters;
-import nak.model.MutableContext;
+import nak.core.AbstractModel;
+import nak.core.EvalParameters;
+import nak.core.MutableContext;
+import nak.data.DataIndexer;
 
 /**
  * Trains models using the perceptron algorithm.  Each outcome is represented as

@@ -24,11 +24,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import nak.model.AbstractModel;
-import nak.model.AbstractModelWriter;
-import nak.model.ComparablePredicate;
-import nak.model.Context;
-import nak.model.IndexHashTable;
+import nak.core.AbstractModel;
+import nak.core.ComparablePredicate;
+import nak.core.Context;
+import nak.util.IndexHashTable;
 
 
 

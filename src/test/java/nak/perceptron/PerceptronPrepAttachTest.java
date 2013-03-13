@@ -25,9 +25,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-import nak.model.AbstractModel;
-import nak.model.TrainUtil;
-import nak.model.TwoPassDataIndexer;
+import nak.core.AbstractModel;
+import nak.core.TrainUtil;
+import nak.data.TwoPassDataIndexer;
 import nak.perceptron.PerceptronTrainer;
 
 import org.junit.Test;

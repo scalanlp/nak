@@ -19,8 +19,8 @@ package nak.io;
 
 import java.io.IOException;
 
-import nak.model.OnePassRealValueDataIndexer;
-import nak.model.RealValueFileEventStream;
+import nak.data.OnePassRealValueDataIndexer;
+import nak.data.RealValueFileEventStream;
 
 
 import junit.framework.TestCase;

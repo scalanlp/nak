@@ -21,10 +21,10 @@ package nak.maxent;
 
 import java.io.IOException;
 
-import nak.model.DataIndexer;
-import nak.model.EventStream;
-import nak.model.Prior;
-import nak.model.UniformPrior;
+import nak.core.Prior;
+import nak.core.UniformPrior;
+import nak.data.DataIndexer;
+import nak.data.EventStream;
 
 
 

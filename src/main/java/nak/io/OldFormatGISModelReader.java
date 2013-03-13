@@ -25,8 +25,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 
-import nak.model.AbstractModelReader;
-import nak.model.Context;
+import nak.core.Context;
 
 
 

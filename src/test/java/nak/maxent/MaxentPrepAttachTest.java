@@ -25,11 +25,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 
+import nak.core.AbstractModel;
+import nak.core.TrainUtil;
+import nak.core.UniformPrior;
+import nak.data.TwoPassDataIndexer;
 import nak.maxent.GISTrainer;
-import nak.model.AbstractModel;
-import nak.model.TrainUtil;
-import nak.model.TwoPassDataIndexer;
-import nak.model.UniformPrior;
 
 import org.junit.Test;
 

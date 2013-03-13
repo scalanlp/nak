@@ -21,8 +21,8 @@ package nak.quasinewton;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import nak.model.DataIndexer;
-import nak.model.OnePassRealValueDataIndexer;
+import nak.data.DataIndexer;
+import nak.data.OnePassRealValueDataIndexer;
 
 
 

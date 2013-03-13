@@ -24,11 +24,11 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 
-import nak.model.AbstractModel;
-import nak.model.Context;
-import nak.model.EvalParameters;
-import nak.model.Prior;
-import nak.model.UniformPrior;
+import nak.core.AbstractModel;
+import nak.core.Context;
+import nak.core.EvalParameters;
+import nak.core.Prior;
+import nak.core.UniformPrior;
 
 
 

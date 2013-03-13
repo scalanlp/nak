@@ -20,7 +20,7 @@ package nak.quasinewton;
 
 import java.util.Arrays;
 
-import nak.model.DataIndexer;
+import nak.data.DataIndexer;
 
 
 

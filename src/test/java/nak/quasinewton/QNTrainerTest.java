@@ -31,15 +31,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-import nak.model.AbstractModel;
-import nak.model.DataIndexer;
-import nak.model.Event;
-import nak.model.GenericModelReader;
-import nak.model.GenericModelWriter;
-import nak.model.LinearModel;
-import nak.model.OnePassRealValueDataIndexer;
-import nak.model.RealValueFileEventStream;
-import nak.model.TwoPassDataIndexer;
+import nak.core.AbstractModel;
+import nak.core.Event;
+import nak.core.LinearModel;
+import nak.data.DataIndexer;
+import nak.data.OnePassRealValueDataIndexer;
+import nak.data.RealValueFileEventStream;
+import nak.data.TwoPassDataIndexer;
+import nak.io.GenericModelReader;
+import nak.io.GenericModelWriter;
 import nak.perceptron.PerceptronPrepAttachTest;
 import nak.quasinewton.QNModel;
 import nak.quasinewton.QNTrainer;

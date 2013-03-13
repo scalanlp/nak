@@ -23,16 +23,16 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import nak.model.AbstractModel;
-import nak.model.DataIndexer;
-import nak.model.Event;
-import nak.model.IndexHashTable;
-import nak.model.MutableContext;
-import nak.model.OnePassDataIndexer;
-import nak.model.Sequence;
-import nak.model.SequenceStream;
-import nak.model.SequenceStreamEventStream;
-import nak.model.TwoPassDataIndexer;
+import nak.core.AbstractModel;
+import nak.core.Event;
+import nak.core.MutableContext;
+import nak.core.Sequence;
+import nak.data.DataIndexer;
+import nak.data.OnePassDataIndexer;
+import nak.data.SequenceStream;
+import nak.data.SequenceStreamEventStream;
+import nak.data.TwoPassDataIndexer;
+import nak.util.IndexHashTable;
 
 
 

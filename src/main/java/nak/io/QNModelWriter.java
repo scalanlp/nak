@@ -20,11 +20,10 @@ package nak.io;
 
 import java.io.IOException;
 
-import nak.model.AbstractModel;
-import nak.model.AbstractModelWriter;
-import nak.model.Context;
-import nak.model.IndexHashTable;
+import nak.core.AbstractModel;
+import nak.core.Context;
 import nak.quasinewton.QNModel;
+import nak.util.IndexHashTable;
 
 
 

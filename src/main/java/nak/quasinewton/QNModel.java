@@ -18,10 +18,10 @@
  */
 package nak.quasinewton;
 
-import nak.model.AbstractModel;
-import nak.model.Context;
-import nak.model.EvalParameters;
-import nak.model.UniformPrior;
+import nak.core.AbstractModel;
+import nak.core.Context;
+import nak.core.EvalParameters;
+import nak.core.UniformPrior;
 
 public class QNModel extends AbstractModel {
   private static final double SMOOTHING_VALUE = 0.1;

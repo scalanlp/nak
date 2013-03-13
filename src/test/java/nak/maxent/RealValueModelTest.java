@@ -19,11 +19,11 @@ package nak.maxent;
 
 import java.io.IOException;
 
+import nak.data.FileEventStream;
+import nak.data.OnePassRealValueDataIndexer;
+import nak.data.RealValueFileEventStream;
 import nak.maxent.GIS;
 import nak.maxent.GISModel;
-import nak.model.FileEventStream;
-import nak.model.OnePassRealValueDataIndexer;
-import nak.model.RealValueFileEventStream;
 
 
 

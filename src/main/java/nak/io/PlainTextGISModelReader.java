@@ -23,7 +23,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 
-import nak.model.PlainTextFileDataReader;
+import nak.data.PlainTextFileDataReader;
 
 
 

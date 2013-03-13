@@ -20,7 +20,6 @@ package nak.io;
 
 import java.io.DataInputStream;
 
-import nak.model.BinaryFileDataReader;
 
 
 

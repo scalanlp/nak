@@ -24,7 +24,7 @@ import java.io.Reader;
 
 import nak.model.Event;
 import nak.model.EventStream;
-import nak.model.MaxentModel;
+import nak.model.LinearModel;
 
 
 
@@ -34,16 +34,16 @@ import nak.model.MaxentModel;
  */
 public class TrainEval {
     
-    public static void eval(MaxentModel model, Reader r, Evalable e) {
+    public static void eval(LinearModel model, Reader r, Evalable e) {
 	eval(model, r, e, false);
     }
 
-    public static void eval(MaxentModel model, Reader r,
+    public static void eval(LinearModel model, Reader r,
 			    Evalable e, boolean verbose) {
 
 	float totPos=0, truePos=0, falsePos=0;
 	Event[] events = (e.getEventCollector(r)).getEvents(true);
-	//MaxentModel model = e.getModel(dir, name);
+	//LinearModel model = e.getModel(dir, name);
 	String negOutcome = e.getNegativeOutcome();
     for (Event event : events) {
       String guess = model.getBestOutcome(model.eval(event.getContext()));
@@ -65,7 +65,7 @@ public class TrainEval {
 	
     }
 
-    public static MaxentModel train(EventStream events, int cutoff) throws IOException {
+    public static LinearModel train(EventStream events, int cutoff) throws IOException {
 	return GIS.trainModel(events, 100, cutoff);
     }
 
@@ -130,14 +130,14 @@ public class TrainEval {
 //	FileReader datafr = new FileReader(args[lastIndex]);
 //	
 //	if (train) {
-//	    MaxentModel m =
+//	    LinearModel m =
 //		train(new EventCollectorAsStream(e.getEventCollector(datafr)),
 //		      cutoff);
 //	    new SuffixSensitiveGISModelWriter((AbstractModel)m,
 //					      new File(dir+stem)).persist();
 //	}
 //	else {
-//	    MaxentModel model =
+//	    LinearModel model =
 //		new SuffixSensitiveGISModelReader(new File(dir+stem)).getModel();
 //	    if (local) {
 //		e.localEval(model, datafr, e, verbose);

@@ -19,10 +19,10 @@
 
 package nak.maxent;
 
-import nak.model.MaxentModel;
+import nak.model.LinearModel;
 
 /**
- * A object to facilitate the resetting of a MaxentModel variable to a
+ * A object to facilitate the resetting of a LinearModel variable to a
  * new value (model).  In general this will be used anonymously, for example, as
  * follows: 
  * <p>
@@ -30,7 +30,7 @@ import nak.model.MaxentModel;
  *     private final ModelReplacementManager replacementManager =
  *	  new ModelReplacementManager(
  *	      new ModelSetter() {
- *		  public void setModel(MaxentModel m) {
+ *		  public void setModel(LinearModel m) {
  *		      model = m;
  *		  }
  *	      }
@@ -48,10 +48,10 @@ import nak.model.MaxentModel;
 public interface ModelSetter {
 
   /**
-   * Assign a new MaxentModel value to a MaxentModel variable.
+   * Assign a new LinearModel value to a LinearModel variable.
    * 
    * @param m
    *          The new model.
    */
-  public void setModel(MaxentModel m);
+  public void setModel(LinearModel m);
 }

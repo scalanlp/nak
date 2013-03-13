@@ -25,12 +25,12 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import nak.model.MaxentModel;
+import nak.model.LinearModel;
 
 
 
 /**
- * A class which stores a mapping from ModelDomain objects to MaxentModels.
+ * A class which stores a mapping from ModelDomain objects to LinearModels.
  * This permits an application to replace an old model for a domain with a
  * newly trained one in a thread-safe manner.  By calling the getModel()
  * method, the application can create new instances of classes which use the
@@ -39,7 +39,7 @@ import nak.model.MaxentModel;
 public class DomainToModelMap {
 
   // the underlying object which stores the mapping
-  private Map<ModelDomain, MaxentModel> map = Collections.synchronizedMap(new HashMap<ModelDomain, MaxentModel>());
+  private Map<ModelDomain, LinearModel> map = Collections.synchronizedMap(new HashMap<ModelDomain, LinearModel>());
 
   /**
    * Sets the model for the given domain.
@@ -47,9 +47,9 @@ public class DomainToModelMap {
    * @param domain
    *          The ModelDomain object which keys to the model.
    * @param model
-   *          The MaxentModel trained for the domain.
+   *          The LinearModel trained for the domain.
    */
-  public void setModelForDomain(ModelDomain domain, MaxentModel model) {
+  public void setModelForDomain(ModelDomain domain, LinearModel model) {
     map.put(domain, model);
   }
 
@@ -58,9 +58,9 @@ public class DomainToModelMap {
    * 
    * @param domain
    *          The ModelDomain object which keys to the desired model.
-   * @return The MaxentModel corresponding to the given domain.
+   * @return The LinearModel corresponding to the given domain.
    */
-  public MaxentModel getModel(ModelDomain domain) {
+  public LinearModel getModel(ModelDomain domain) {
     if (map.containsKey(domain)) {
       return map.get(domain);
     } else {

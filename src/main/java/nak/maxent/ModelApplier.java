@@ -26,7 +26,7 @@ import java.text.DecimalFormat;
 import nak.model.Event;
 import nak.model.EventStream;
 import nak.model.GenericModelReader;
-import nak.model.MaxentModel;
+import nak.model.LinearModel;
 import nak.model.RealValueFileEventStream;
 
 
@@ -35,14 +35,14 @@ import nak.model.RealValueFileEventStream;
  * Test the model on some input.
  */
 public class ModelApplier {
-  MaxentModel _model;
+  LinearModel _model;
   ContextGenerator _cg = new BasicContextGenerator(",");
   int counter = 1;
 
   // The format for printing percentages
   public static final DecimalFormat ROUNDED_FORMAT = new DecimalFormat("0.000");
 
-  public ModelApplier(MaxentModel m) {
+  public ModelApplier(LinearModel m) {
     _model = m;
   }
 
@@ -115,7 +115,7 @@ public class ModelApplier {
 
       ModelApplier predictor = null;
       try {
-        MaxentModel m = new GenericModelReader(new File(modelFileName)).getModel();
+        LinearModel m = new GenericModelReader(new File(modelFileName)).getModel();
         predictor = new ModelApplier(m);
       } catch (Exception e) {
         e.printStackTrace();

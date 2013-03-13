@@ -36,7 +36,7 @@ import nak.model.DataIndexer;
 import nak.model.Event;
 import nak.model.GenericModelReader;
 import nak.model.GenericModelWriter;
-import nak.model.MaxentModel;
+import nak.model.LinearModel;
 import nak.model.OnePassRealValueDataIndexer;
 import nak.model.RealValueFileEventStream;
 import nak.model.TwoPassDataIndexer;
@@ -120,7 +120,7 @@ public class QNTrainerTest {
 	    }
   }
 
-  public static void testModel(MaxentModel model) throws IOException {
+  public static void testModel(LinearModel model) throws IOException {
     List<Event> devEvents = readPpaFile("devset");
 
     int total = 0;

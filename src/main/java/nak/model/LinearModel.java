@@ -20,9 +20,9 @@
 package nak.model;
 
 /**
- * Interface for maximum entropy models.
+ * Interface for models that construct a linear separator.
  **/
-public interface MaxentModel {
+public interface LinearModel {
 
   /**
    * Evaluates a context.

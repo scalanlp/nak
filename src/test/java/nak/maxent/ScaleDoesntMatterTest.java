@@ -23,7 +23,7 @@ import nak.maxent.GIS;
 import nak.maxent.PlainTextByLineDataStream;
 import nak.maxent.RealBasicEventStream;
 import nak.model.EventStream;
-import nak.model.MaxentModel;
+import nak.model.LinearModel;
 import nak.model.OnePassRealValueDataIndexer;
 import nak.model.RealValueFileEventStream;
 
@@ -53,7 +53,7 @@ public class ScaleDoesntMatterTest extends TestCase {
     EventStream smallEventStream = new RealBasicEventStream(
         new PlainTextByLineDataStream(smallReader));
 
-    MaxentModel smallModel = GIS.trainModel(100,
+    LinearModel smallModel = GIS.trainModel(100,
         new OnePassRealValueDataIndexer(smallEventStream, 0), false);
     String[] contexts = smallTest.split(" ");
     float[] values = RealValueFileEventStream.parseContexts(contexts);
@@ -66,7 +66,7 @@ public class ScaleDoesntMatterTest extends TestCase {
     EventStream largeEventStream = new RealBasicEventStream(
         new PlainTextByLineDataStream(largeReader));
 
-    MaxentModel largeModel = GIS.trainModel(100,
+    LinearModel largeModel = GIS.trainModel(100,
         new OnePassRealValueDataIndexer(largeEventStream, 0), false);
     contexts = largeTest.split(" ");
     values = RealValueFileEventStream.parseContexts(contexts);

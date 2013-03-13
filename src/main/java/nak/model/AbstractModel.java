@@ -21,7 +21,7 @@ package nak.model;
 
 import java.text.DecimalFormat;
 
-public abstract class AbstractModel implements MaxentModel {
+public abstract class AbstractModel implements LinearModel {
 
   /** Mapping between predicates/contexts and an integer representing them. */
   protected IndexHashTable<String> pmap;

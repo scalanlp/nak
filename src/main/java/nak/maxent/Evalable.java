@@ -22,7 +22,7 @@ package nak.maxent;
 import java.io.Reader;
 
 import nak.model.EventCollector;
-import nak.model.MaxentModel;
+import nak.model.LinearModel;
 
 
 
@@ -68,5 +68,5 @@ public interface Evalable {
    * @param verbose
    *          a request to print more specific processing information
    */
-  public void localEval(MaxentModel model, Reader r, Evalable e, boolean verbose);
+  public void localEval(LinearModel model, Reader r, Evalable e, boolean verbose);
 }

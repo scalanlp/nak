@@ -18,13 +18,13 @@
  */
 package nak.maxent;
 
-import nak.model.MaxentModel;
+import nak.model.LinearModel;
 
 /**
  * A object which can be used to ensure that a Maxent application can swap the
  * model currently in use with a new one in a thread-safe manner without
  * stopping the servicing of requests. Use this if your maxent application is
- * a heavy-weight one or you have only one particular MaxentModel to use with
+ * a heavy-weight one or you have only one particular LinearModel to use with
  * your application. If your application class is lightweight and you will be
  * creating multiple instances of it with different underlying models, consider
  * using a DomainToModelMap object to ensure thread-safe model swapping.
@@ -36,7 +36,7 @@ import nak.model.MaxentModel;
  *     private final ModelReplacementManager replacementManager =
  *	  new ModelReplacementManager(
  *	      new ModelSetter() {
- *		  public void setModel(MaxentModel m) {
+ *		  public void setModel(LinearModel m) {
  *		      model = m;
  *		  }
  *	      }
@@ -48,10 +48,10 @@ import nak.model.MaxentModel;
  * which need their own ModelReplacementManager).
  *
  * <p>You'll also need a method to swap the model which calls the manager's
- * replaceModel(MaxentModel m) method, e.g.,
+ * replaceModel(LinearModel m) method, e.g.,
  *
  *     <pre>
- *     public void replaceModel (MaxentModel newmod) {
+ *     public void replaceModel (LinearModel newmod) {
  *	  replacementManager.replaceModel(newmod);
  *    }
  *     </pre>
@@ -124,7 +124,7 @@ public class ModelReplacementManager {
    * @param model
    *          The new model which is being swapped in.
    */
-  public synchronized void replaceModel(MaxentModel model) {
+  public synchronized void replaceModel(LinearModel model) {
     replacementThread = Thread.currentThread();
     while (!replacementCanProceed)
       Thread.yield();

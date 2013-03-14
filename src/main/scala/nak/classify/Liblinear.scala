@@ -2,6 +2,11 @@ package nak.classify
 
 import de.bwaldvogel.liblinear._
 
+/**
+ * A wrapper to Liblinear that conforms to the LinearModel interface.
+ * 
+ * @author jasonbaldridge
+ */
 class LiblinearClassifier(
   model: Model,
   fmap: Map[String,Int], 
@@ -25,33 +30,6 @@ class LiblinearClassifier(
   }
 }
 
-
-/**
- * A simple wrapper to Liblinear.
- * 
- * @author jasonbaldridge
- */
-class LiblinearClassifierWrapper(model: Model) {
-  lazy val weights = model.getFeatureWeights
-  lazy val numClasses = model.getNrClass
-
-  import LiblinearUtil.createNodes
-
-  def apply(nodes: Seq[FeatureNode]) = predict(nodes)
-
-  def predict(nodes: Seq[FeatureNode]) = 
-    Linear.predict(model, nodes.toArray)
-
-  def predictDense(inputValues: Seq[Double]) = 
-    apply(createNodes(inputValues))
-
-  def predictValues(nodes: Seq[FeatureNode]) = {
-    val linearPredictor = Array.fill(numClasses)(0.0)
-    Linear.predictValues(model, nodes.toArray, linearPredictor)
-    linearPredictor.toSeq
-  }
-
-}
 
 /**
  * Companion object to train a Liblinear classifier from data.

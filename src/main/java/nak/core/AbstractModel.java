@@ -19,8 +19,6 @@
 
 package nak.core;
 
-import java.text.DecimalFormat;
-
 import nak.util.IndexHashTable;
 
 public abstract class AbstractModel implements LinearModel {
@@ -78,33 +76,6 @@ public abstract class AbstractModel implements LinearModel {
   
   public ModelType getModelType(){
     return modelType;
-  }
-
-  /**
-   * Return a string matching all the outcome names with all the
-   * probabilities produced by the <code>eval(String[] context)</code>
-   * method.
-   *
-   * @param ocs A <code>double[]</code> as returned by the
-   *            <code>eval(String[] context)</code>
-   *            method.
-   * @return    String containing outcome names paired with the normalized
-   *            probability (contained in the <code>double[] ocs</code>)
-   *            for each one.
-   */
-  public final String getAllOutcomes(double[] ocs) {
-      if (ocs.length != outcomeNames.length) {
-          return "The double array sent as a parameter to GISModel.getAllOutcomes() must not have been produced by this model.";
-      }
-      else {
-        DecimalFormat df =  new DecimalFormat("0.0000");
-        StringBuilder sb = new StringBuilder(ocs.length * 2);
-        sb.append(outcomeNames[0]).append("[").append(df.format(ocs[0])).append("]");
-        for (int i = 1; i<ocs.length; i++) {
-          sb.append("  ").append(outcomeNames[i]).append("[").append(df.format(ocs[i])).append("]");
-        }
-        return sb.toString();
-      }
   }
 
   /**

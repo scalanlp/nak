@@ -36,17 +36,6 @@ public interface LinearModel {
   public double[] eval(String[] context);
   
   /**
-     * Evaluates a context.
-     *
-     * @param context A list of String names of the contextual predicates
-     *                which are to be evaluated together.
-     * @param probs An array which is populated with the probabilities for each of the different
-     *         outcomes, all of which sum to 1.
-     * @return an array of the probabilities for each of the different outcomes, all of which sum to 1. 
-     **/
-  public double[] eval(String[] context, double probs[]);
-  
-  /**
    * Evaluates a contexts with the specified context values.
    * @param context A list of String names of the contextual predicates
      *                which are to be evaluated together.
@@ -54,31 +43,6 @@ public interface LinearModel {
    * @return an array of the probabilities for each of the different outcomes, all of which sum to 1.
    */
   public double[] eval(String[] context, float[] values);
-
-  /**
-   * Simple function to return the outcome associated with the index
-   * containing the highest probability in the double[].
-   *
-   * @param outcomes A <code>double[]</code> as returned by the
-   *            <code>eval(String[] context)</code>
-   *            method.
-   * @return the String name of the best outcome
-   **/
-  public String getBestOutcome(double[] outcomes);
-
-  /**
-   * Return a string matching all the outcome names with all the
-   * probabilities produced by the <code>eval(String[]
-   * context)</code> method.
-   *
-   * @param outcomes A <code>double[]</code> as returned by the
-   *            <code>eval(String[] context)</code>
-   *            method.
-   * @return    String containing outcome names paired with the normalized
-   *            probability (contained in the <code>double[] ocs</code>)
-   *            for each one.
-   **/
-  public String getAllOutcomes(double[] outcomes);
 
   /**
    * Gets the String name of the outcome associated with the index
@@ -100,11 +64,6 @@ public interface LinearModel {
    * model, -1 if it does not.
    **/
   public int getIndex(String outcome);
-
-  /**
-   * Returns the data structures relevant to storing the model.
-   **/
-  public Object[] getDataStructures();
 
   /** Returns the number of outcomes for this model.
    *  @return The number of outcomes.

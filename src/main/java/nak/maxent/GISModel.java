@@ -97,17 +97,13 @@ public final class GISModel extends AbstractModel {
    *         method getOutcome(int i).
    */
   public final double[] eval(String[] context) {
-    return (eval(context, new double[evalParams.getNumOutcomes()]));
+    return (eval(context, null, new double[evalParams.getNumOutcomes()]));
   }
 
   public final double[] eval(String[] context, float[] values) {
     return (eval(context, values, new double[evalParams.getNumOutcomes()]));
   }
 
-  public final double[] eval(String[] context, double[] outsums) {
-    return eval(context, null, outsums);
-  }
-    
   /**
    * Use this model to evaluate a context and return an array of the likelihood
    * of each outcome given that context.

@@ -41,41 +41,41 @@ object LiblinearClassifierFromCsv {
     fmap("DUMMY FEATURE BECAUSE LIBLINEAR STARTS WITH 1-BASED INDEX")
 
     // Read in the training data and index it.
-    val trainingData = 
-      SparseCsvDataset(io.Source.fromFile(trainfile))
-        .map { case(label, features) => {
-          val indexedFeatures = features.map(fmap(_))
-          val indexedLabel = lmap(label)
-          (indexedLabel.toDouble, indexedFeatures)
-        }}
-        .toList // Need to consume the lines in order to populate the feature map
+    val trainingData = SparseCsvDataset(io.Source.fromFile(trainfile))
+      .map { case(label, features) => {
+        val indexedFeatures = features.map(fmap(_))
+        val indexedLabel = lmap(label)
+        (indexedLabel.toDouble, indexedFeatures)
+      }}
+    .toList // Need to consume the lines in order to populate the feature map
 
     val interceptFeature = (fmap("intercept"),1.0)
 
     val lmapFixed = lmap.toMap
     val fmapFixed = fmap.toMap
 
-    val (responses, designMatrix) =
+    val (responses, observations) =
         trainingData
           .map{ case(label, features) => (label, makeLibsvmFeatureVector(features) ++ List(interceptFeature)) }
           .unzip
 
-    // Train the classifier
-    val classifier = 
-      new LiblinearTrainer(1.0).applyIndexed(responses, designMatrix, fmapFixed.size)
+    // Train the model
+    val model = new LiblinearTrainer(1.0)(responses, observations, fmapFixed.size)
+    val classifier = new LiblinearClassifier(model, fmapFixed, lmapFixed)
 
     // Read in the evaluation data
-    val evalData = 
-      SparseCsvDataset(io.Source.fromFile(evalfile))
-        .map { case(label, features) => {          
-          val indexedFeatures = features.flatMap(fmapFixed.get)
-          (lmapFixed(label), makeLibsvmFeatureVector(indexedFeatures) ++ List(interceptFeature))
-        }}
+    val evalData = SparseCsvDataset(io.Source.fromFile(evalfile))
+      .map { case(label, features) => {          
+        val indexedFeatures = features.flatMap(fmapFixed.get)
+        (lmapFixed(label), makeLibsvmFeatureVector(indexedFeatures) ++ List(interceptFeature))
+      }}
 
     // Get the predictions
-    val compare = evalData.map { case (label, features) =>
-      (label, classifier(features.map{ case(a,v) => new FeatureNode(a,v) }).toInt)
-    }.toList
+    val compare = evalData.map { case (label, features) => {
+      val scores = classifier(features.toArray)
+      val best = scores.zipWithIndex.maxBy(_._1)._2
+      (label, best)
+    }}.toList
 
     val correct = compare.count{ case(t,p) => t == p }
     println("Accuracy: " + correct/compare.length.toDouble*100)

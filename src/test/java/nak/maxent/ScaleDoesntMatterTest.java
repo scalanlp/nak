@@ -26,6 +26,7 @@ import nak.data.PlainTextByLineDataStream;
 import nak.data.RealBasicEventStream;
 import nak.data.RealValueFileEventStream;
 import nak.maxent.GIS;
+import nak.classify.ClassifierUtil;
 
 import junit.framework.TestCase;
 
@@ -59,7 +60,7 @@ public class ScaleDoesntMatterTest extends TestCase {
     float[] values = RealValueFileEventStream.parseContexts(contexts);
     double[] smallResults = smallModel.eval(contexts, values);
 
-    String smallResultString = smallModel.getAllOutcomes(smallResults);
+    String smallResultString = ClassifierUtil.getAllOutcomes(smallModel, smallResults);
     System.out.println("smallResults: " + smallResultString);
 
     StringReader largeReader = new StringReader(largeValues);
@@ -72,7 +73,7 @@ public class ScaleDoesntMatterTest extends TestCase {
     values = RealValueFileEventStream.parseContexts(contexts);
     double[] largeResults = largeModel.eval(contexts, values);
 
-    String largeResultString = smallModel.getAllOutcomes(largeResults);
+    String largeResultString = ClassifierUtil.getAllOutcomes(smallModel, largeResults);
     System.out.println("largeResults: " + largeResultString);
 
     assertEquals(smallResults.length, largeResults.length);

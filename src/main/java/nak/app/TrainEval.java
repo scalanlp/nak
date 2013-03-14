@@ -27,7 +27,7 @@ import nak.core.Event;
 import nak.core.LinearModel;
 import nak.data.EventStream;
 import nak.maxent.GIS;
-
+import nak.classify.ClassifierUtil;
 
 
 /**
@@ -48,7 +48,7 @@ public class TrainEval {
 	//LinearModel model = e.getModel(dir, name);
 	String negOutcome = e.getNegativeOutcome();
     for (Event event : events) {
-      String guess = model.getBestOutcome(model.eval(event.getContext()));
+      String guess = ClassifierUtil.getBestOutcome(model, model.eval(event.getContext()));
       String ans = event.getOutcome();
       if (verbose)
         System.out.println(ans + " " + guess);

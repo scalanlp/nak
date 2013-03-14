@@ -55,15 +55,11 @@ public class PerceptronModel extends AbstractModel {
   }
   
   public double[] eval(String[] context) {
-    return eval(context,new double[evalParams.getNumOutcomes()]);
+    return eval(context,null, new double[evalParams.getNumOutcomes()]);
   }
   
   public double[] eval(String[] context, float[] values) {
     return eval(context,values,new double[evalParams.getNumOutcomes()]);
-  }
-
-  public double[] eval(String[] context, double[] probs) {
-    return eval(context,null,probs);
   }
 
   public double[] eval(String[] context, float[] values,double[] outsums) {

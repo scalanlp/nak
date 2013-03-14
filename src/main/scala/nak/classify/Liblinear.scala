@@ -2,12 +2,36 @@ package nak.classify
 
 import de.bwaldvogel.liblinear._
 
+class LiblinearClassifier(
+  model: Model,
+  fmap: Map[String,Int], 
+  lmap: Map[String,Int]) extends LinearModelAdaptor {
+
+  // Assumes labels are indexed 0 to n in label map
+  val labels = lmap.toSeq.sortBy(_._2).unzip._1.toArray
+
+  def indexOfFeature(feature: String) = fmap.get(feature)
+  def indexOfLabel(label: String) = lmap(label)
+  def labelOfIndex(index: Int) = labels(index)
+  val numLabels = labels.length
+
+  def apply(context: Array[(Int,Double)]): Array[Double] =
+    predict(context.map(c=>new FeatureNode(c._1,c._2).asInstanceOf[Feature]))
+
+  def predict(context: Array[Feature]): Array[Double] = {
+    val labelScores = Array.fill(numLabels)(0.0)
+    Linear.predictValues(model, context, labelScores)
+    labelScores
+  }
+}
+
+
 /**
  * A simple wrapper to Liblinear.
  * 
  * @author jasonbaldridge
  */
-class LiblinearClassifier(model: Model) {
+class LiblinearClassifierWrapper(model: Model) {
   lazy val weights = model.getFeatureWeights
   lazy val numClasses = model.getNrClass
 
@@ -44,30 +68,31 @@ class LiblinearTrainer(
 
   if (!showDebug) Linear.disableDebugOutput
 
-  def applyIndexed(
+  def apply(
     responses: Seq[Double],
-    designMatrix: Seq[Seq[(Int,Double)]], 
+    observations: Seq[Seq[(Int,Double)]], 
     numFeatures: Int
-  ) =
-    apply(responses.toArray, createLiblinearMatrix(designMatrix), numFeatures)
+  ): Model =
+    apply(responses.toArray, createLiblinearMatrix(observations), numFeatures)
 
 
   def apply(
     responses: Array[Double],
-    designMatrix: Array[Array[Feature]],
+    observations: Array[Array[Feature]],
     numFeatures: Int
-  ) = {
+  ): Model = {
 
     val problem = new Problem
     problem.y = responses
-    problem.x = designMatrix
+    problem.x = observations
     problem.l = responses.length
     problem.n = numFeatures
  
     // Can make the solver type a parameter if want to use other solvers in LibLinear.
     val param = new Parameter(SolverType.L2R_LR, regularization, eps)
     val model = Linear.train(problem, param)
-    new LiblinearClassifier(model)
+    //new LiblinearClassifierWrapper(model)
+    model
   }
 
 }
@@ -78,8 +103,8 @@ class LiblinearTrainer(
  */
 object LiblinearUtil {
 
-  def createLiblinearMatrix(designMatrix: Seq[Seq[(Int,Double)]]): Array[Array[Feature]] =  
-    designMatrix.map { features =>
+  def createLiblinearMatrix(observations: Seq[Seq[(Int,Double)]]): Array[Array[Feature]] =  
+    observations.map { features =>
       features.map{ case(a,v) => new FeatureNode(a,v).asInstanceOf[Feature] }.toArray
     }.toArray
 

@@ -1,6 +1,6 @@
 package nak.app
 
-import nak.classify._
+import nak.core._
 
 /**
  * This is an example app for creating a Liblinear classifier from data that is 
@@ -18,17 +18,73 @@ import nak.classify._
  * The homework includes pointers to the data and to Scala code for generating
  * said features.
  *
- * This example handles creating a feature index and getting the examples into the
- * right data structures for training with the logistic regression classifier,
- * which should serve as a useful example for creating features and classifiers
- * using the API.
+ * This example uses Nak's data indexers and event streams to read in the data, and
+ * and it also tests model writing and reading.
  * 
  * @author jasonbaldridge
  */ 
-object LiblinearClassifierFromCsv {
+object LiblinearExample {
 
   import java.io._
-  import de.bwaldvogel.liblinear._
+  import nak.liblinear._
+  import nak.util.GrowableIndex
+  import nak.data._
+  import nak.io._
+  import nak.core._
+
+  def main(args: Array[String]) {
+
+    val Array(trainfile,evalfile) = args
+
+    val trainingReader = new BufferedReader(new FileReader(trainfile))
+    val dataIndexer = new TwoPassDataIndexer(new BasicEventStream(new PlainTextByLineDataStream(trainingReader), ","))
+
+    // Train the model
+    val classifierTrained = LiblinearTrainer.train(dataIndexer)
+
+    // Write the model to disk
+    val modelFile = "/tmp/example-model.bin.gz"
+    new GenericModelWriter(classifierTrained, new File(modelFile)).persist
+
+    // Read the model from disk
+    val classifierReader = new GenericModelReader(new File(modelFile))
+    classifierReader.checkModelType
+    val classifier = classifierReader.constructModel
+
+    // Read in the evaluation data
+    val evalReader = new BufferedReader(new FileReader(evalfile))
+    val evalEvents = new BasicEventStream(new PlainTextByLineDataStream(evalReader), ",")
+
+    val evalEventsListBuffer = new collection.mutable.ListBuffer[Event]()
+    while (evalEvents.hasNext) evalEventsListBuffer.append(evalEvents.next)
+
+    // Get and score the predictions
+    val compare = evalEventsListBuffer.map { event => {
+      val scores = classifier.eval(event.getContext)
+      val best = scores.zipWithIndex.maxBy(_._1)._2
+      (event.getOutcome, classifier.getOutcome(best))
+    }}.toList
+
+    val correct = compare.count{ case(t,p) => t == p }
+    println("Accuracy: " + correct/compare.length.toDouble*100)
+  }
+
+}
+
+
+/**
+ * This is a second example based on the same data format, but this time
+ * computing the features directly w/o using the nak.data classes. It handles
+ * creating a feature index and getting the examples into the right data structures
+ * for training with the logistic regression classifier, which should serve as a
+ * useful example for creating features and classifiers using the API.
+ * 
+ * @author jasonbaldridge
+ */ 
+object LiblinearExample2 {
+
+  import java.io._
+  import nak.liblinear._
   import nak.util.GrowableIndex
 
   def main(args: Array[String]) {
@@ -47,21 +103,20 @@ object LiblinearClassifierFromCsv {
         val indexedLabel = lmap(label)
         (indexedLabel.toDouble, indexedFeatures)
       }}
-    .toList // Need to consume the lines in order to populate the feature map
+      .toList // Need to consume the lines in order to populate the feature map
 
     val interceptFeature = (fmap("intercept"),1.0)
 
     val lmapFixed = lmap.toMap
     val fmapFixed = fmap.toMap
 
-    val (responses, observations) =
-        trainingData
-          .map{ case(label, features) => (label, makeLibsvmFeatureVector(features) ++ List(interceptFeature)) }
-          .unzip
+    val (responses, observations) = trainingData
+      .map{ case(label, features) => (label, makeLibsvmFeatureVector(features) ++ List(interceptFeature)) }
+      .unzip
 
     // Train the model
     val model = new LiblinearTrainer(1.0)(responses, observations, fmapFixed.size)
-    val classifier = new LiblinearClassifier(model, fmapFixed, lmapFixed)
+    val classifier = new LiblinearClassifier(model, lmapFixed, fmapFixed)
 
     // Read in the evaluation data
     val evalData = SparseCsvDataset(io.Source.fromFile(evalfile))

@@ -28,16 +28,14 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.zip.GZIPOutputStream;
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 import nak.core.AbstractModel.ModelType;
-
-
 
 public class GenericModelWriter extends AbstractModelWriter {
 
   private AbstractModelWriter delegateWriter;
   
-  public GenericModelWriter(AbstractModel model, File file) throws IOException {
+  public GenericModelWriter(LinearModel model, File file) throws IOException {
     String filename = file.getName();
     OutputStream os;
     // handle the zipped/not zipped distinction
@@ -58,11 +56,11 @@ public class GenericModelWriter extends AbstractModelWriter {
     }
   }
   
-  public GenericModelWriter(AbstractModel model, DataOutputStream dos) {
+  public GenericModelWriter(LinearModel model, DataOutputStream dos) {
     init(model,dos);
   }
   
-  private void init(AbstractModel model, DataOutputStream dos) {
+  private void init(LinearModel model, DataOutputStream dos) {
     if (model.getModelType() == ModelType.Perceptron) {
       delegateWriter = new BinaryPerceptronModelWriter(model,dos);
     }
@@ -72,9 +70,12 @@ public class GenericModelWriter extends AbstractModelWriter {
     else if (model.getModelType() == ModelType.MaxentQn) {
         delegateWriter = new BinaryQNModelWriter(model,dos);
     }
+    else if (model.getModelType() == ModelType.Liblinear) {
+        delegateWriter = new LiblinearModelWriter(model,dos);
+    }
   }
   
-  private void init(AbstractModel model, BufferedWriter bw) {
+  private void init(LinearModel model, BufferedWriter bw) {
     if (model.getModelType() == ModelType.Perceptron) {
       delegateWriter = new PlainTextPerceptronModelWriter(model,bw);
     }

@@ -22,9 +22,8 @@ package nak.io;
 import java.io.File;
 import java.io.IOException;
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 import nak.data.DataReader;
-
 
 
 public class GenericModelReader extends AbstractModelReader {
@@ -50,18 +49,17 @@ public class GenericModelReader extends AbstractModelReader {
     else if (modelType.equals("QN")) {
         delegateModelReader = new QNModelReader(this.dataReader);
     }
+    else if (modelType.equals("Liblinear")) {
+        delegateModelReader = new LiblinearModelReader(this.dataReader);
+    }
     else {
       throw new IOException("Unknown model format: "+modelType);
     }
   }
   
 
-  public AbstractModel constructModel() throws IOException {
+  public LinearModel constructModel() throws IOException {
     return delegateModelReader.constructModel();
   }
   
-  public static void main(String[] args) throws IOException {
-    AbstractModel m =  new GenericModelReader(new File(args[0])).getModel();
-    new GenericModelWriter( m, new File(args[1])).persist();
-  }
 }

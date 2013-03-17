@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.zip.GZIPOutputStream;
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 
 
 
@@ -46,7 +46,7 @@ public class PlainTextPerceptronModelWriter extends PerceptronModelWriter {
    * @param model The PerceptronModel which is to be persisted.
    * @param f The File in which the model is to be persisted.
    */
-  public PlainTextPerceptronModelWriter (AbstractModel model, File f)
+  public PlainTextPerceptronModelWriter (LinearModel model, File f)
   throws IOException, FileNotFoundException {
 
     super(model);
@@ -66,7 +66,7 @@ public class PlainTextPerceptronModelWriter extends PerceptronModelWriter {
    * @param model The PerceptronModel which is to be persisted.
    * @param bw The BufferedWriter which will be used to persist the model.
    */
-  public PlainTextPerceptronModelWriter (AbstractModel model, BufferedWriter bw) {
+  public PlainTextPerceptronModelWriter (LinearModel model, BufferedWriter bw) {
     super(model);
     output = bw;
   }

@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.zip.GZIPOutputStream;
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 
 
 
@@ -46,7 +46,7 @@ public class PlainTextGISModelWriter extends GISModelWriter {
    * @param model The GISModel which is to be persisted.
    * @param f The File in which the model is to be persisted.
    */
-  public PlainTextGISModelWriter (AbstractModel model, File f)
+  public PlainTextGISModelWriter (LinearModel model, File f)
   throws IOException, FileNotFoundException {
 
     super(model);
@@ -66,7 +66,7 @@ public class PlainTextGISModelWriter extends GISModelWriter {
    * @param model The GISModel which is to be persisted.
    * @param bw The BufferedWriter which will be used to persist the model.
    */
-  public PlainTextGISModelWriter (AbstractModel model, BufferedWriter bw) {
+  public PlainTextGISModelWriter (LinearModel model, BufferedWriter bw) {
     super(model);
     output = bw;
   }

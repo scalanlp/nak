@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 import nak.core.TrainUtil;
 import nak.core.UniformPrior;
 import nak.data.TwoPassDataIndexer;
@@ -38,7 +38,7 @@ public class MaxentPrepAttachTest {
 
   @Test
   public void testMaxentOnPrepAttachData() throws IOException {
-    AbstractModel model = 
+    LinearModel model = 
         new GISTrainer(true).trainModel(100, 
         new TwoPassDataIndexer(createTrainingStream(), 1), 1);
 
@@ -47,7 +47,7 @@ public class MaxentPrepAttachTest {
   
   @Test
   public void testMaxentOnPrepAttachData2Threads() throws IOException {
-    AbstractModel model = 
+    LinearModel model = 
         new GISTrainer(true).trainModel(100,
             new TwoPassDataIndexer(createTrainingStream(), 1),
             new UniformPrior(), 1, 2);
@@ -64,7 +64,7 @@ public class MaxentPrepAttachTest {
         TrainUtil.DATA_INDEXER_TWO_PASS_VALUE);
     trainParams.put(TrainUtil.CUTOFF_PARAM, Integer.toString(1));
     
-    AbstractModel model = TrainUtil.train(createTrainingStream(), trainParams, null);
+    LinearModel model = TrainUtil.train(createTrainingStream(), trainParams, null);
     
     testModel(model, 0.7997028967566229);
   }
@@ -75,7 +75,7 @@ public class MaxentPrepAttachTest {
     Map<String, String> trainParams = new HashMap<String, String>();
     trainParams.put(TrainUtil.ALGORITHM_PARAM, TrainUtil.MAXENT_VALUE);
     
-    AbstractModel model = TrainUtil.train(createTrainingStream(), trainParams, null);
+    LinearModel model = TrainUtil.train(createTrainingStream(), trainParams, null);
     
     testModel(model, 0.8086159940579352 );
   }

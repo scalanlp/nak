@@ -28,7 +28,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.zip.GZIPOutputStream;
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 
 
 
@@ -51,7 +51,7 @@ public class SuffixSensitiveGISModelWriter extends GISModelWriter {
    * @param model The GISModel which is to be persisted.
    * @param f The File in which the model is to be stored.
    */
-  public SuffixSensitiveGISModelWriter (AbstractModel model, File f)
+  public SuffixSensitiveGISModelWriter (LinearModel model, File f)
   throws IOException {
 
     super (model);

@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 import nak.core.Event;
 import nak.core.LinearModel;
 import nak.data.DataIndexer;
@@ -105,7 +105,7 @@ public class QNTrainerTest {
 	    modelWriter.persist();
 	    
 	    GenericModelReader modelReader = new GenericModelReader(new File(modelFileName));
-	    AbstractModel readModel = modelReader.getModel();
+	    LinearModel readModel = modelReader.getModel();
 	    QNModel deserModel = (QNModel) readModel;
 	    
 	    assertTrue(trainedModel.equals(deserModel)); 

@@ -25,7 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 
 
 
@@ -45,7 +45,7 @@ public class BinaryGISModelWriter extends GISModelWriter {
    * @param f
    *          The File in which the model is to be persisted.
    */
-  public BinaryGISModelWriter(AbstractModel model, File f) throws IOException {
+  public BinaryGISModelWriter(LinearModel model, File f) throws IOException {
 
     super(model);
 
@@ -66,7 +66,7 @@ public class BinaryGISModelWriter extends GISModelWriter {
    * @param dos
    *          The stream which will be used to persist the model.
    */
-  public BinaryGISModelWriter(AbstractModel model, DataOutputStream dos) {
+  public BinaryGISModelWriter(LinearModel model, DataOutputStream dos) {
     super(model);
     output = dos;
   }

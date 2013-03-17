@@ -24,7 +24,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 
 
 
@@ -41,7 +41,7 @@ public class BinaryQNModelWriter extends QNModelWriter {
    * @param f
    *          The File in which the model is to be persisted.
    */
-  public BinaryQNModelWriter(AbstractModel model, File f) throws IOException {
+  public BinaryQNModelWriter(LinearModel model, File f) throws IOException {
 
     super(model);
 
@@ -62,7 +62,7 @@ public class BinaryQNModelWriter extends QNModelWriter {
    * @param dos
    *          The stream which will be used to persist the model.
    */
-  public BinaryQNModelWriter(AbstractModel model, DataOutputStream dos) {
+  public BinaryQNModelWriter(LinearModel model, DataOutputStream dos) {
     super(model);
     output = dos;
   }

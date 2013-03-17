@@ -82,6 +82,7 @@ public class TwoPassDataIndexer extends AbstractDataIndexer{
       tmp.deleteOnExit();
       Writer osw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp),"UTF8"));
       int numEvents = computeEventCounts(eventStream, osw, predicateIndex, cutoff);
+      //int numEvents = computeEventCounts(eventStream, osw, predicateIndex, cutoff);
       System.out.println("done. " + numEvents + " events");
 
       System.out.print("\tIndexing...  ");

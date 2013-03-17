@@ -1,4 +1,4 @@
-package nak.classify
+package nak.core
 
 trait Classifier extends (Array[(Int,Double)] => Array[Double])
 
@@ -33,7 +33,7 @@ trait LinearModelAdaptor extends nak.core.LinearModel with StringIndexedClassifi
     
   def getOutcome(i: Int) = labelOfIndex(i)
   def getIndex(outcome: String) = indexOfLabel(outcome)
-  val getNumOutcomes = numLabels
+  def getNumOutcomes = numLabels
 
 }
 

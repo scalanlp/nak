@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 import nak.core.TrainUtil;
 import nak.data.TwoPassDataIndexer;
 import nak.perceptron.PerceptronTrainer;
@@ -40,7 +40,7 @@ public class PerceptronPrepAttachTest {
 
   @Test
   public void testPerceptronOnPrepAttachData() throws IOException {
-    AbstractModel model = 
+    LinearModel model = 
         new PerceptronTrainer().trainModel(400, 
         new TwoPassDataIndexer(createTrainingStream(), 1, false), 1);
 
@@ -55,7 +55,7 @@ public class PerceptronPrepAttachTest {
     trainParams.put(TrainUtil.CUTOFF_PARAM, Integer.toString(1));
     trainParams.put("UseSkippedAveraging", Boolean.toString(true));
     
-    AbstractModel model = TrainUtil.train(createTrainingStream(), trainParams, null);
+    LinearModel model = TrainUtil.train(createTrainingStream(), trainParams, null);
     
     testModel(model, 0.773706362961129);
   }
@@ -69,7 +69,7 @@ public class PerceptronPrepAttachTest {
     trainParams.put(TrainUtil.ITERATIONS_PARAM, Integer.toString(500));
     trainParams.put("Tolerance", Double.toString(0.0001d));
     
-    AbstractModel model = TrainUtil.train(createTrainingStream(), trainParams, null);
+    LinearModel model = TrainUtil.train(createTrainingStream(), trainParams, null);
     
     testModel(model, 0.7677642980935875);
   }
@@ -83,7 +83,7 @@ public class PerceptronPrepAttachTest {
     trainParams.put(TrainUtil.ITERATIONS_PARAM, Integer.toString(500));
     trainParams.put("StepSizeDecrease", Double.toString(0.06d));
     
-    AbstractModel model = TrainUtil.train(createTrainingStream(), trainParams, null);
+    LinearModel model = TrainUtil.train(createTrainingStream(), trainParams, null);
     
     testModel(model, 0.7756870512503095);
   }

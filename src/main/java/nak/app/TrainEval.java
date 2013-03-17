@@ -22,12 +22,12 @@ package nak.app;
 import java.io.IOException;
 import java.io.Reader;
 
+import nak.core.ClassifierUtil;
 import nak.core.Evalable;
 import nak.core.Event;
 import nak.core.LinearModel;
 import nak.data.EventStream;
 import nak.maxent.GIS;
-import nak.classify.ClassifierUtil;
 
 
 /**

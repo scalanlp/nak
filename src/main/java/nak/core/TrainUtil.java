@@ -143,7 +143,7 @@ public class TrainUtil {
   
   // TODO: Need a way to report results and settings back for inclusion in model ...
   
-  public static AbstractModel train(EventStream events, Map<String, String> trainParams, Map<String, String> reportMap) 
+  public static LinearModel train(EventStream events, Map<String, String> trainParams, Map<String, String> reportMap) 
       throws IOException {
     
     if (!isValid(trainParams))
@@ -184,13 +184,15 @@ public class TrainUtil {
       throw new IllegalStateException("Unexpected data indexer name: " +  dataIndexerName);
     }
     
-    AbstractModel model;
+    LinearModel model;
     if (MAXENT_VALUE.equals(algorithmName)) {
       
       int threads = getIntParam(trainParams, "Threads", 1, reportMap);
       
-      model = nak.maxent.GIS.trainModel(iterations, indexer,
-          true, false, null, 0, threads);
+      model = nak.maxent.GIS.trainModel(iterations, indexer, true, false, null, 0, threads);
+
+      //model = nak.liblinear.LiblinearTrainer.train(indexer);
+
     }
     else if (MAXENT_QN_VALUE.equals(algorithmName)) {
       int m = getIntParam(trainParams, "numOfUpdates", QNTrainer.DEFAULT_M, reportMap);
@@ -239,7 +241,7 @@ public class TrainUtil {
     return PERCEPTRON_SEQUENCE_VALUE.equals(trainParams.get(ALGORITHM_PARAM));
   }
   
-  public static AbstractModel train(SequenceStream events, Map<String, String> trainParams,
+  public static LinearModel train(SequenceStream events, Map<String, String> trainParams,
       Map<String, String> reportMap) throws IOException {
     
     if (!isValid(trainParams))

@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import nak.core.AbstractModel;
+import nak.core.LinearModel;
 import nak.core.ComparablePredicate;
 import nak.core.Context;
 import nak.util.IndexHashTable;
@@ -43,9 +44,9 @@ public abstract class GISModelWriter extends AbstractModelWriter {
   protected double CORRECTION_PARAM;
   protected String[] PRED_LABELS;
 
-  public GISModelWriter(AbstractModel model) {
+  public GISModelWriter(LinearModel model) {
 
-    Object[] data = model.getDataStructures();
+    Object[] data = ((AbstractModel)model).getDataStructures();
 
     PARAMS = (Context[]) data[0];
     IndexHashTable<String> pmap = (IndexHashTable<String>) data[1];

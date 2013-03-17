@@ -26,7 +26,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 import nak.core.Event;
 import nak.data.EventStream;
 import nak.data.ListEventStream;
@@ -69,7 +69,7 @@ public class PrepAttachDataUtil {
     return trainingStream;
   }
   
-  public static void testModel(AbstractModel model, double expecedAccuracy) throws IOException {
+  public static void testModel(LinearModel model, double expecedAccuracy) throws IOException {
 
     List<Event> devEvents = readPpaFile("devset");
 

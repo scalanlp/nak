@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import nak.core.LinearModel;
 import nak.core.AbstractModel;
 import nak.core.ComparablePredicate;
 import nak.core.Context;
@@ -43,9 +44,9 @@ public abstract class PerceptronModelWriter extends AbstractModelWriter {
     protected String[] PRED_LABELS;
     int numOutcomes;
 
-    public PerceptronModelWriter (AbstractModel model) {
+    public PerceptronModelWriter (LinearModel model) {
       
-      Object[] data = model.getDataStructures();
+      Object[] data = ((AbstractModel)model).getDataStructures();
       this.numOutcomes = model.getNumOutcomes();
       PARAMS = (Context[]) data[0];
       IndexHashTable<String> pmap = (IndexHashTable<String>) data[1];

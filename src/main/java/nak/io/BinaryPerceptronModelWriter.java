@@ -25,7 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 
 
 
@@ -43,7 +43,7 @@ public class BinaryPerceptronModelWriter extends PerceptronModelWriter {
    * @param model The GISModel which is to be persisted.
    * @param f The File in which the model is to be persisted.
    */
-  public BinaryPerceptronModelWriter (AbstractModel model, File f) throws IOException {
+  public BinaryPerceptronModelWriter (LinearModel model, File f) throws IOException {
 
     super(model);
 
@@ -63,7 +63,7 @@ public class BinaryPerceptronModelWriter extends PerceptronModelWriter {
    * @param model The GISModel which is to be persisted.
    * @param dos The stream which will be used to persist the model.
    */
-  public BinaryPerceptronModelWriter (AbstractModel model, DataOutputStream dos) {
+  public BinaryPerceptronModelWriter (LinearModel model, DataOutputStream dos) {
     super(model);
     output = dos;
   }

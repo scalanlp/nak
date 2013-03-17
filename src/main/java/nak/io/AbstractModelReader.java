@@ -26,7 +26,7 @@ import java.io.InputStream;
 import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
 
-import nak.core.AbstractModel;
+import nak.core.LinearModel;
 import nak.core.Context;
 import nak.data.DataReader;
 import nak.data.PlainTextFileDataReader;
@@ -87,14 +87,14 @@ public abstract class AbstractModelReader {
     return dataReader.readUTF();
   }
       
-  public AbstractModel getModel() throws IOException {
+  public LinearModel getModel() throws IOException {
     checkModelType();
     return constructModel();
   }
 
   public abstract void checkModelType() throws java.io.IOException;
   
-  public abstract AbstractModel constructModel() throws java.io.IOException;
+  public abstract LinearModel constructModel() throws java.io.IOException;
 
   protected String[] getOutcomes() throws java.io.IOException {
       int numOutcomes = readInt();

@@ -32,12 +32,21 @@ package nak.core;
  */
 public class BasicContextGenerator implements ContextGenerator {
 
-  private String separator = " ";
+  private final String separator;
+  private final boolean includeIntercept;
+  private final String interceptFeature = "intercept=[**TRUE**]";
 
-  public BasicContextGenerator () {}
+  public BasicContextGenerator () {
+    this(" ");
+  }
   
   public BasicContextGenerator (String sep) {
+    this(sep, false);
+  }
+
+  public BasicContextGenerator (String sep, boolean includeIntercept) {
     separator = sep;
+    this.includeIntercept = includeIntercept;
   }
 
   /**
@@ -45,7 +54,15 @@ public class BasicContextGenerator implements ContextGenerator {
    */
   public String[] getContext(Object o) {
     String s = (String) o;
-    return (String[]) s.split(separator);
+    if (includeIntercept) {
+      // Okay, so this is dumb, but it is just a quick hack to avoid 
+      // Java collections pain.
+      String interceptString = interceptFeature + separator + s;
+      //System.out.println("&&&&&&&&&&&&&&& " + interceptString);
+      return (String[]) interceptString.split(separator);
+    } else {
+      return (String[]) s.split(separator);
+    }
   }
  
 }

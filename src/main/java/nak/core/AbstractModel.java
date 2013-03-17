@@ -32,7 +32,7 @@ public abstract class AbstractModel implements LinearModel {
   /** Prior distribution for this model. */
   protected Prior prior;
   
-  public enum ModelType {Maxent,Perceptron,MaxentQn};
+  public enum ModelType {Maxent,Perceptron,MaxentQn,Liblinear};
   
   /** The type of the model. */
   protected ModelType modelType;

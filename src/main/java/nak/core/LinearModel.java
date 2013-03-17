@@ -70,4 +70,8 @@ public interface LinearModel {
    **/
   public int getNumOutcomes();
 
+
+  public nak.core.AbstractModel.ModelType getModelType();
+
+
 }

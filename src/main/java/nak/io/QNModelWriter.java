@@ -21,6 +21,7 @@ package nak.io;
 import java.io.IOException;
 
 import nak.core.AbstractModel;
+import nak.core.LinearModel;
 import nak.core.Context;
 import nak.quasinewton.QNModel;
 import nak.util.IndexHashTable;
@@ -38,8 +39,8 @@ public abstract class QNModelWriter extends AbstractModelWriter {
   protected double[] parameters;
   
   @SuppressWarnings("unchecked")
-  public QNModelWriter(AbstractModel model) {
-    Object[] data = model.getDataStructures();
+  public QNModelWriter(LinearModel model) {
+    Object[] data = ((AbstractModel)model).getDataStructures();
     params = (Context[]) data[0];
     pmap = (IndexHashTable<String>) data[1];
     outcomeNames = (String[]) data[2];
@@ -83,6 +84,7 @@ public abstract class QNModelWriter extends AbstractModelWriter {
     for (int i = 0; i < parameters.length; i++)
       writeDouble(parameters[i]);
     close();
+
   }
 }
 

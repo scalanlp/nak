@@ -41,18 +41,22 @@ object LiblinearClassifier {
 }
 
 
+class LiblinearConfig(
+  val solverType: SolverType = SolverType.L2R_LR,
+  val cost: Double = 1.0, 
+  val eps: Double = 0.01, 
+  val showDebug: Boolean = false)
 
 /**
  * Train a Liblinear classifier from data.
  * 
  * @author jasonbaldridge
  */
-class LiblinearTrainer(
-  regularization: Double = 1.0, eps: Double = 0.01, showDebug: Boolean = false) {
+class LiblinearTrainer(config: LiblinearConfig) {
 
   import LiblinearTrainer._
 
-  if (!showDebug) Linear.disableDebugOutput
+  if (!config.showDebug) Linear.disableDebugOutput
 
   def apply(
     responses: Seq[Double],
@@ -75,19 +79,18 @@ class LiblinearTrainer(
     problem.n = numFeatures
 
     // Can make the solver type a parameter if want to use other solvers in LibLinear.
-    val param = new Parameter(SolverType.L2R_LR, regularization, eps)
+    val param = new Parameter(config.solverType, config.cost, config.eps)
     Linear.train(problem, param)
   }
 
 }
-
 
 /**
  * A helper object
  */
 object LiblinearTrainer {
 
-  def train(indexer: nak.data.DataIndexer) = {
+  def train(indexer: nak.data.DataIndexer, config: LiblinearConfig = new LiblinearConfig()) = {
 
     val labels = indexer.getOutcomeLabels
     
@@ -123,7 +126,7 @@ object LiblinearTrainer {
     //  .flatten
 
     // Train the model, and then return the classifier.
-    val model = new LiblinearTrainer(1.0)(responses, observations, features.length)
+    val model = new LiblinearTrainer(config)(responses, observations, features.length)
 
     LiblinearClassifier(model, labels, features);
   }

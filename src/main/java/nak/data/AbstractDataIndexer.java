@@ -83,6 +83,10 @@ public abstract class AbstractDataIndexer implements DataIndexer {
    * @since maxent 1.2.6
    */
   protected int sortAndMerge(List<ComparableEvent> eventsToCompare, boolean sort) {
+      return sortAndMerge(eventsToCompare, sort, false);
+  }
+
+    protected int sortAndMerge(List<ComparableEvent> eventsToCompare, boolean sort, boolean verbose) {
     int numUniqueEvents = 1;
     numEvents = eventsToCompare.size();
     if (sort) {
@@ -108,7 +112,7 @@ public abstract class AbstractDataIndexer implements DataIndexer {
     else {
       numUniqueEvents = eventsToCompare.size();
     }
-    if (sort) System.out.println("done. Reduced " + numEvents + " events to " + numUniqueEvents + ".");
+    if (verbose && sort) System.out.println("done. Reduced " + numEvents + " events to " + numUniqueEvents + ".");
 
     contexts = new int[numUniqueEvents][];
     outcomeList = new int[numUniqueEvents];

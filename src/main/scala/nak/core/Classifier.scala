@@ -12,6 +12,10 @@ trait LabelMap[L] {
   def numLabels: Int
 }
 
+case class AttrVal(val attr: String, val value: String) {
+  override def toString = attr + "=" + value
+}
+
 trait IndexedClassifier[L,F] extends Classifier with LabelMap[L] with FeatureMap[F]
 
 trait StringIndexedClassifier extends IndexedClassifier[String,String]

@@ -144,7 +144,12 @@ public class GIS {
    */
   public static GISModel trainModel(EventStream eventStream, int iterations,
       int cutoff, double sigma) throws IOException {
-    GISTrainer trainer = new GISTrainer(PRINT_MESSAGES);
+      return trainModel(eventStream, iterations, cutoff, sigma, false);
+  }
+
+  public static GISModel trainModel(EventStream eventStream, int iterations,
+				    int cutoff, double sigma, boolean verbose) throws IOException {
+    GISTrainer trainer = new GISTrainer(verbose);
     if (sigma > 0)
       trainer.setGaussianSigma(sigma);
     return trainer.trainModel(eventStream, iterations, cutoff);

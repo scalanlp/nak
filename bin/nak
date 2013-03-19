@@ -29,6 +29,8 @@ help()
 cat <<EOF
 nak 1.1.1 commands: 
 
+  app           run the main method of a given class in the nak.app package
+  classify      run the classifiction application (nak.app.Classify)
   run           run the main method of a given class
 
 Include --help with any option for more information
@@ -38,6 +40,8 @@ EOF
 CLASS=
 
 case $CMD in
+    app) CLASS=nak.app.$1; shift;;
+    classify) CLASS=nak.app.Classify;;
     run) CLASS=$1; shift;;
     help) help; exit 1;;
     *) echo "Unrecognized command: $CMD"; help; exit 1;;

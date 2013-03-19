@@ -4,6 +4,8 @@ Authors:
 * **Jason Baldridge** (jasonbaldridge@gmail.com)
 * **Dan Garrette** (dhg@cs.utexas.edu)
 
+See the NOTICE file for listings of other contributions that have been absorbed into Nak.
+
 ## Introduction
 
 Nak is a library for machine learning and related tasks, with a focus on having an easy to use API for some standard algorithms. It is formed from the OpenNLP Maxent package, and the intent is to evolve it as a Scala library with further capabilities. It will be developed in particular with the natural language processing library [Chalk](https://github.com/scalanlp/chalk) in mind. Use of [Breeze](https://github.com/scalanlp/breeze) is likely in Nak's future.
@@ -12,29 +14,29 @@ Like Chalk, the name Nak comes from one of Jason's son's stuffed elephants. (He 
 
 ## What's inside
 
-The latest stable release of Nak is 1.1.0. It includes:
-* The classification code from the OpenNLP Maxent package, slightly reorganized.
-* The k-means clustering code from Scalabha.
+The latest stable release of Nak is 1.1.1. It includes:
+* Massive reorganization of the sub-packages.
+* Added nak.liblinear (using the Java liblinear package) and added nak.app.Classify that uses liblinear logistic regression solvers as well as GIS.
+
+See the [CHANGELOG](https://github.com/scalanlp/nak/wiki/CHANGELOG) for changes in previous versions3.
 
 ## Using Nak
 
 In SBT:
 
-    libraryDependencies += "org.scalanlp" % "nak" % "1.1.0"
+    libraryDependencies += "org.scalanlp" % "nak" % "1.1.1"
 
 In Maven:
 
     <dependency>
        <groupId>org.scalanlp</groupId>
        <artifactId>nak</artifactId>
-       <version>1.1.0</version>
+       <version>1.1.1</version>
     </dependency>
-
-Note that the domain has changed from **com.jasonbaldridge** (v1.0) to **org.scalanlp** now.
 
 **Note**: There is one dependency that won't get pulled along: pca_transform-0.7.2.jar in the lib directory is not available on any repository, so you'll need to add that to your classpath by hand if (and only if) you want to be able to use PCA transformations for input to k-means.
 
-There is no dedicated documentation for Nak as yet, but you can see some use of the k-means clustering code in [homework three](https://github.com/utcompling/applied-nlp/wiki/Homework3) for Jason's [Applied NLP course](https://github.com/utcompling/applied-nlp/wiki). Future homeworks will cover classification and more, using Nak.
+There is no dedicated documentation for Nak as yet, but you can see some use of the k-means clustering code in [homework three](https://github.com/utcompling/applied-nlp/wiki/Homework3) and the classification code in [homework four](https://github.com/utcompling/applied-nlp/wiki/Homework4) for Jason's [Applied NLP course](https://github.com/utcompling/applied-nlp/wiki). 
 
 ## Requirements
 

@@ -18,7 +18,7 @@ The latest stable release of Nak is 1.1.1. It includes:
 * Massive reorganization of the sub-packages.
 * Added nak.liblinear (using the Java liblinear package) and added nak.app.Classify that uses liblinear logistic regression solvers as well as GIS.
 
-See the [CHANGELOG](https://github.com/scalanlp/nak/wiki/CHANGELOG) for changes in previous versions3.
+See the [CHANGELOG](https://github.com/scalanlp/nak/wiki/CHANGELOG) for changes in previous versions.
 
 ## Using Nak
 

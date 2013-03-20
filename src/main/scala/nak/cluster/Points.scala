@@ -44,6 +44,8 @@ case class Point(val coord: IndexedSeq[Double]) {
   // divisor.
   def /(divisor: Double) = Point(coord.map(_ / divisor))
 
+  def *(multiple:Double) = Point(coord.map(x=> x*multiple))
+
   // Compute the dot product between this Point and another.
   def dotProduct(that: Point) = this.zip(that).map { case (x, y) => x * y }.sum
 
@@ -169,6 +171,16 @@ class ZscoreTransformer(
     }
   }
 
+  def inverseTransform(points : IndexedSeq[Point]) : IndexedSeq[Point] = {    
+     points.map { point =>   
+       val transformed = point.coord.zip(means.zip(standardDeviations)).map {    
+         case (z, (mean, sdev)) => (sdev*z)+mean   
+       }   
+       Point(transformed)    
+     }   
+         
+   }
+
 }
 
 /**
@@ -232,6 +244,19 @@ class PcaTransformer(
       Point(transformedCoord.take(numComponents).toIndexedSeq)
     }
   }
+
+  def inverseTransform(points:IndexedSeq[Point]) : IndexedSeq[Point] = {    
+     val evectorMatrix = pca.getEigenvectorsMatrix();    
+     val inverseTransformMatrix = evectorMatrix.getMatrix(0,evectorMatrix.getRowDimension-1,0,numComponents-1).transpose()    
+     val pointMatrix = new Matrix(points.map(_.coord.toArray).toArray)   
+     val transformedPoints = pointMatrix.times(inverseTransformMatrix)   
+     val ztransformedPoints = transformedPoints.getArray.map { transformedCoord =>   
+       Point(transformedCoord.take(numComponents).toIndexedSeq)    
+     }   
+     scaler.inverseTransform(ztransformedPoints)   
+  }
+
+
 
 }
 /**

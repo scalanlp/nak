@@ -42,7 +42,8 @@ public class BasicEventStream extends AbstractEventStream {
   
    public BasicEventStream (DataStream ds, String sep) {
     separator = sep;
-    cg = new BasicContextGenerator(separator, false);
+    //cg = new BasicContextGenerator(separator, false);
+    cg = new BasicContextGenerator(separator, true);
     this.ds = ds;
     if (this.ds.hasNext())
       next = createEvent((String)this.ds.nextToken());

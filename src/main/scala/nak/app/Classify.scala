@@ -27,8 +27,8 @@ object Classify {
 	  case "L2R_LR" => SolverType.L2R_LR
 	  case "L1R_LR" => SolverType.L1R_LR
 	}
-	val config = new LiblinearConfig(solverType, opts.cost(), opts.eps(), opts.verbose())
-	val indexer = new OnePassDataIndexer(trainingEvents, opts.cutoff(), true, opts.verbose())
+	val config = new LiblinearConfig(solverType, opts.cost(), opts.eps())//, opts.verbose())
+	val indexer = new OnePassDataIndexer(trainingEvents, opts.cutoff(), true)//, opts.verbose())
 	LiblinearTrainer.train(indexer, config)
 
     }

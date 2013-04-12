@@ -75,28 +75,43 @@ public class OnePassDataIndexer extends AbstractDataIndexer {
   public OnePassDataIndexer(
       EventStream eventStream, int cutoff, boolean sort, boolean verbose)
       throws IOException {
+
     Map<String, Integer> predicateIndex = new HashMap<String, Integer>();
     LinkedList<Event> events;
     List<ComparableEvent> eventsToCompare;
 
-    if (verbose) System.out.println("Indexing events using cutoff of " + cutoff + "\n");
+    if (verbose) {
+      System.out.println("Indexing events using cutoff of " + cutoff + "\n");
+      System.out.print("\tComputing event counts...  ");
+    }
 
-    if (verbose) System.out.print("\tComputing event counts...  ");
     events = computeEventCounts(eventStream, predicateIndex, cutoff);
-    if (verbose) System.out.println("done. " + events.size() + " events");
 
-    if (verbose) System.out.print("\tIndexing...  ");
+    if (verbose) {
+      System.out.println("done. " + events.size() + " events");
+      System.out.print("\tIndexing...  ");
+    }
+
     eventsToCompare = index(events, predicateIndex);
     // done with event list
     events = null;
     // done with predicates
     predicateIndex = null;
 
-    if (verbose) System.out.println("done.");
+    if (verbose) {
+      System.out.println("done.");
+      System.out.print("Sorting and merging events... ");
+    }
 
-    if (verbose) System.out.print("Sorting and merging events... ");
-    sortAndMerge(eventsToCompare, sort, verbose);
-    if (verbose) System.out.println("Done indexing.");
+    int numUniqueEvents = sortAndMerge(eventsToCompare, sort);
+
+    if (verbose) {
+      if (sort)
+        System.out.println("done. Reduced " + events.size() + 
+                           " events to " + numUniqueEvents + ".");
+      System.out.println("Done indexing.");
+    }
+
   }
 
   /**

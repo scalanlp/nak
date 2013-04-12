@@ -66,8 +66,6 @@ public abstract class AbstractDataIndexer implements DataIndexer {
   public String[] getOutcomeLabels() {
     return outcomeLabels;
   }
-  
-  
 
   public int[] getPredCounts() {
     return predCounts;
@@ -82,11 +80,19 @@ public abstract class AbstractDataIndexer implements DataIndexer {
    * @return The number of unique events in the specified list.
    * @since maxent 1.2.6
    */
-  protected int sortAndMerge(List<ComparableEvent> eventsToCompare, boolean sort) {
-      return sortAndMerge(eventsToCompare, sort, false);
-  }
+  //protected int sortAndMerge(List<ComparableEvent> eventsToCompare, boolean sort) {
+  //  //return sortAndMerge2(eventsToCompare, sort, false);
+  //  return sortAndMerge2(eventsToCompare, sort);
+  //}
 
-    protected int sortAndMerge(List<ComparableEvent> eventsToCompare, boolean sort, boolean verbose) {
+  //protected int sortAndMerge2(List<ComparableEvent> eventsToCompare, boolean sort, boolean verbose) {
+  //protected int sortAndMerge2(List<ComparableEvent> eventsToCompare, boolean sort, boolean verbose) {
+  //protected int sortAndMerge2(List<ComparableEvent> eventsToCompare, boolean sort) {
+  //  return blip(eventsToCompare, sort);
+  //}
+
+  protected int sortAndMerge(List<ComparableEvent> eventsToCompare, boolean sort) {
+
     int numUniqueEvents = 1;
     numEvents = eventsToCompare.size();
     if (sort) {
@@ -112,7 +118,6 @@ public abstract class AbstractDataIndexer implements DataIndexer {
     else {
       numUniqueEvents = eventsToCompare.size();
     }
-    if (verbose && sort) System.out.println("done. Reduced " + numEvents + " events to " + numUniqueEvents + ".");
 
     contexts = new int[numUniqueEvents][];
     outcomeList = new int[numUniqueEvents];
@@ -122,7 +127,8 @@ public abstract class AbstractDataIndexer implements DataIndexer {
       ComparableEvent evt = eventsToCompare.get(i);
       if (null == evt) {
         continue; // this was a dupe, skip over it.
-      }
+      } 
+
       numTimesEventsSeen[j] = evt.seen;
       outcomeList[j] = evt.outcome;
       contexts[j] = evt.predIndexes;

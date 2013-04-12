@@ -62,11 +62,6 @@ public class TwoPassDataIndexer extends AbstractDataIndexer{
   public TwoPassDataIndexer(EventStream eventStream, int cutoff) throws IOException {
     this(eventStream,cutoff,true);
   }
-
-  public TwoPassDataIndexer(EventStream eventStream, int cutoff, boolean sort) throws IOException {
-    this(eventStream,cutoff,true, false);
-  }
-
   /**
    * Two argument constructor for DataIndexer.
    *
@@ -75,22 +70,22 @@ public class TwoPassDataIndexer extends AbstractDataIndexer{
    * @param cutoff The minimum number of times a predicate must have been
    *               observed in order to be included in the model.
    */
-    public TwoPassDataIndexer(EventStream eventStream, int cutoff, boolean sort, boolean verbose) throws IOException {
+  public TwoPassDataIndexer(EventStream eventStream, int cutoff, boolean sort) throws IOException {
     Map<String,Integer> predicateIndex = new HashMap<String,Integer>();
     List<ComparableEvent> eventsToCompare;
 
-    if (verbose) System.out.println("Indexing events using cutoff of " + cutoff + "\n");
+    System.out.println("Indexing events using cutoff of " + cutoff + "\n");
 
-    if (verbose) System.out.print("\tComputing event counts...  ");
+    System.out.print("\tComputing event counts...  ");
     try {
       File tmp = File.createTempFile("events", null);
       tmp.deleteOnExit();
       Writer osw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp),"UTF8"));
       int numEvents = computeEventCounts(eventStream, osw, predicateIndex, cutoff);
       //int numEvents = computeEventCounts(eventStream, osw, predicateIndex, cutoff);
-      if (verbose) System.out.println("done. " + numEvents + " events");
+      System.out.println("done. " + numEvents + " events");
 
-      if (verbose) System.out.print("\tIndexing...  ");
+      System.out.print("\tIndexing...  ");
 
       FileEventStream fes = new FileEventStream(tmp);
       try {
@@ -101,18 +96,16 @@ public class TwoPassDataIndexer extends AbstractDataIndexer{
       // done with predicates
       predicateIndex = null;
       tmp.delete();
-      if (verbose) System.out.println("done.");
+      System.out.println("done.");
 
-      if (verbose) {
-	  if (sort) { 
-	      System.out.print("Sorting and merging events... ");
-	  }
-	  else {
-	      System.out.print("Collecting events... ");
-	  }
+      if (sort) { 
+        System.out.print("Sorting and merging events... ");
       }
-      sortAndMerge(eventsToCompare, sort, verbose);
-      if (verbose) System.out.println("Done indexing.");
+      else {
+        System.out.print("Collecting events... ");
+      }
+      sortAndMerge(eventsToCompare,sort);
+      System.out.println("Done indexing.");
     }
     catch(IOException e) {
       System.err.println(e);

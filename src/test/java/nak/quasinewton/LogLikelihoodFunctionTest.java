@@ -29,6 +29,7 @@ import java.util.Map;
 import nak.data.DataIndexer;
 import nak.data.OnePassRealValueDataIndexer;
 import nak.data.RealValueFileEventStream;
+import nak.data.FileEventStream;
 import nak.quasinewton.LogLikelihoodFunction;
 
 import org.junit.Test;
@@ -42,6 +43,7 @@ public class LogLikelihoodFunctionTest {
   public void testDomainDimensionSanity() throws IOException {
     // given
     RealValueFileEventStream rvfes1 = new RealValueFileEventStream("src/test/resources/data/chalk/learn/real-valued-weights-training-data.txt", "UTF-8");  
+
     DataIndexer testDataIndexer = new OnePassRealValueDataIndexer(rvfes1,1);
     LogLikelihoodFunction objectFunction = new LogLikelihoodFunction(testDataIndexer);
     // when

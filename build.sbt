@@ -11,6 +11,7 @@ retrieveManaged := true
 crossPaths := false
 
 libraryDependencies ++= Seq(
+  "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test",
   "com.novocode" % "junit-interface" % "0.8" % "test->default",
   "org.rogach" %% "scallop" % "0.8.1",
   "commons-logging" % "commons-logging" % "1.1.1",

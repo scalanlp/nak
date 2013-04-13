@@ -80,17 +80,6 @@ public abstract class AbstractDataIndexer implements DataIndexer {
    * @return The number of unique events in the specified list.
    * @since maxent 1.2.6
    */
-  //protected int sortAndMerge(List<ComparableEvent> eventsToCompare, boolean sort) {
-  //  //return sortAndMerge2(eventsToCompare, sort, false);
-  //  return sortAndMerge2(eventsToCompare, sort);
-  //}
-
-  //protected int sortAndMerge2(List<ComparableEvent> eventsToCompare, boolean sort, boolean verbose) {
-  //protected int sortAndMerge2(List<ComparableEvent> eventsToCompare, boolean sort, boolean verbose) {
-  //protected int sortAndMerge2(List<ComparableEvent> eventsToCompare, boolean sort) {
-  //  return blip(eventsToCompare, sort);
-  //}
-
   protected int sortAndMerge(List<ComparableEvent> eventsToCompare, boolean sort) {
 
     int numUniqueEvents = 1;

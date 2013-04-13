@@ -103,7 +103,9 @@ public class TwoPassDataIndexer extends AbstractDataIndexer{
     // done with predicates
     predicateIndex = null;
     tmp.delete();
-    System.out.println("done.");
+    if (verbose) {
+      System.out.println("done.");
+    }
 
     if (verbose) {
       if (sort) { 

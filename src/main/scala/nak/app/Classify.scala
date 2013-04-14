@@ -2,6 +2,78 @@ package nak.app
 
 object Classify {
 
+  import nak.NakContext._
+  import nak.core._
+  import nak.data._
+  import nak.liblinear.{LiblinearConfig,SolverType}
+  import nak.util.GrowableIndex
+  import java.io._
+
+  def main(args: Array[String]) {
+
+    // Parse and get the command-line options
+    val opts = ClassifyOpts(args)
+    
+    // Feature map
+    val lmap = new GrowableIndex[String]()
+    val fmap = new GrowableIndex[String]()
+    fmap("DUMMY FEATURE BECAUSE LIBLINEAR STARTS WITH 1-BASED INDEX")
+
+    val exampleIterator = for (ex <- fromCsvFile(opts.trainfile())) yield {
+      ex.relabel(lmap)
+        .map(_.map(feature => feature.map(fmap)))
+        .map(condense)
+    }
+
+    // Need to consume the iterator so that the label and feature maps are populated
+    val examples = exampleIterator.toList
+
+    val lmapFixed = lmap.toMap
+    val fmapFixed = fmap.toMap
+    
+    val solverType = opts.solverType() match {
+      case "L2R_LR" => SolverType.L2R_LR
+      case "L1R_LR" => SolverType.L1R_LR
+    }
+    
+    val config = new LiblinearConfig(solverType, opts.cost(), opts.eps(), opts.verbose())
+    val classifier = LiblinearTrainer.train(examples, lmapFixed, fmapFixed, config)
+
+    if (opts.evalfile.get != None) {
+
+      // Read in the evaluation data
+      val evalExamples = for (ex <- fromCsvFile(opts.evalfile())) yield {
+        ex.map(_.flatMap(feature => feature.mapOption(fmapFixed.get)))
+      }
+
+      val predictions = for (ex <- evalExamples.toList) yield {
+	val scores = classifier.eval(ex.features)
+	(ex.label, scores)
+      }
+
+      val correct = predictions.count { case(trueLabel, scores) => {
+	val best = scores.zipWithIndex.maxBy(_._1)._2
+	trueLabel == classifier.getOutcome(best)
+      }}
+
+      println("Accuracy: " + correct/predictions.length.toDouble*100)
+
+      if (opts.predictfile.get != None) {
+	val output = new BufferedWriter(new FileWriter(opts.predictfile()))
+	val labels = (0 until classifier.getNumOutcomes).map(classifier.getOutcome).toArray
+	predictions.foreach { case(_, scores) => {
+	  val sortedScores = labels.zip(scores).sortBy(-_._2)
+	  output.write(sortedScores.map(ls => ls._1 + " " + ls._2).mkString(" ") + "\n")
+	}}
+	output.close
+      }
+      
+    }
+  }
+}
+
+object LegacyClassify {
+
   import java.io._
   import nak.core._
   import nak.data._

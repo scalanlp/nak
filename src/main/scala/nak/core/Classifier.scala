@@ -1,15 +1,10 @@
 package nak.core
 
 import nak.liblinear.{Model => LiblinearModel, FeatureNode, LiblinearConfig, Linear, Problem, Parameter}
+import nak.data.{Example, FeatureObservation}
 
 trait FeatureMap {
   def indexOfFeature(feature: String): Option[Int]
-  def indexFeatureObservation(fobs: FeatureObservation): Option[(Int,Double)] = {
-    indexOfFeature(fobs.feature) match {
-      case Some(index) => Some(index, fobs.magnitude)
-      case None => None
-    }
-  }
 }
 
 trait LabelMap[L] {
@@ -19,38 +14,32 @@ trait LabelMap[L] {
 }
 
 
-trait Observation[+T] {
-  def features: T
-}
-
-trait Example[+L,+T] extends Observation[T] {
-  def label: L
-}                                                       
-
-case class StandardExample(label: String, features: Array[FeatureObservation]) 
-extends Example[String,Array[FeatureObservation]]
-
-case class FeatureObservation(feature: String, magnitude: Double = 1.0)
-
 trait Classifier extends (Array[(Int,Double)] => Array[Double])
 
-trait IndexedClassifier[L,F] extends Classifier with LabelMap[L] with FeatureMap
+trait IndexedClassifier[L] extends Classifier with LabelMap[L] with FeatureMap
 
-trait StringIndexedClassifier extends IndexedClassifier[String,String]
+trait StringIndexedClassifier extends IndexedClassifier[String]
 
 trait LinearModelAdaptor extends nak.core.LinearModel with StringIndexedClassifier {
 
-  def eval(observations: Array[FeatureObservation]) =
-    apply(observations.flatMap(indexFeatureObservation))
+  def eval(observations: Seq[FeatureObservation[Int]]) =
+    apply(observations.map(_.tuple).toArray)
+
+  //def eval(observations: Array[FeatureObservation[String]]) =
+  //  apply(observations.flatMap(_.mapOption(indexOfFeature)).map(_.tuple))
 
   def eval(context: Array[String], values: Array[Float]): Array[Double] = {
-    val fobservations = for ((f,m) <- context.zip(values)) yield
-      FeatureObservation(f,m.toDouble)
-    eval(fobservations)
+    //val fobservations = for ((f,m) <- context.zip(values)) yield
+    //  FeatureObservation(f,m.toDouble)
+    val fobservations = 
+      for ((f,m) <- context.zip(values);
+           fob = FeatureObservation(f,m.toDouble);
+           indexed <- fob.mapOption(indexOfFeature)) yield indexed.tuple
+    apply(fobservations)
   }
   
   def eval(context: Array[String]) = 
-    eval(context.map(descr => FeatureObservation(descr)))
+    eval(context, Array.fill(context.length)(1.0f))
     
   def getOutcome(i: Int) = labelOfIndex(i)
   def getIndex(outcome: String) = indexOfLabel(outcome)
@@ -143,7 +132,7 @@ class LiblinearClassifier(
 }
 
 object LiblinearClassifier {
-  
+ 
   def apply(model: LiblinearModel, labels: Array[String], features: Array[String]) =
     new LiblinearClassifier(model, labels.zipWithIndex.toMap, features.zipWithIndex.toMap)
 
@@ -157,6 +146,7 @@ object LiblinearClassifier {
 class LiblinearTrainer(config: LiblinearConfig) {
 
   import nak.liblinear.{Feature => LiblinearFeature}
+  import nak.data.Example
   import LiblinearTrainer._
 
   if (!config.showDebug) Linear.disableDebugOutput
@@ -195,7 +185,9 @@ object LiblinearTrainer {
 
   import nak.liblinear.{Feature => LiblinearFeature}
 
-  def train(indexer: nak.data.DataIndexer, config: LiblinearConfig = new LiblinearConfig()) = {
+  def train(
+    indexer: nak.data.DataIndexer, 
+    config: LiblinearConfig = new LiblinearConfig()): LiblinearClassifier = {
 
     val labels = indexer.getOutcomeLabels
     
@@ -223,14 +215,38 @@ object LiblinearTrainer {
       case (c,v) => 
         c.zip(v).groupBy(_._1).mapValues(_.map(_._2)).mapValues(_.sum.toFloat).toArray
     }
+
+    train(responses, observationsAsTuples, labels, features, config)
+  }
+
+  def train(
+    responses: Array[Double],
+    observationsAsTuples: Array[Array[(Int, Float)]],
+    labels: Array[String],
+    features: Array[String], 
+    config: LiblinearConfig): LiblinearClassifier = {
     
     val observations = createLiblinearMatrix(observationsAsTuples)
-
     // Train the model, and then return the classifier.
     val model = new LiblinearTrainer(config)(responses, observations, features.length)
-
     LiblinearClassifier(model, labels, features);
   }
+
+  def train(
+    examples: TraversableOnce[Example[Int,Seq[FeatureObservation[Int]]]],
+    lmap: Map[String, Int], 
+    fmap: Map[String, Int],
+    config: LiblinearConfig): LiblinearClassifier = {
+  
+    val (responses, observationsAsTuples) = 
+      examples.map(ex => (ex.label, ex.features.map(_.tuple).toSeq)).toSeq.unzip
+    
+    val observations = createLiblinearMatrix(observationsAsTuples)
+    // Train the model, and then return the classifier.
+    val model = new LiblinearTrainer(config)(responses.map(_.toDouble).toArray, observations, fmap.size)
+    new LiblinearClassifier(model, lmap, fmap)
+  }
+
 
   def createLiblinearMatrix(observations: Seq[Seq[(Int,Double)]]): Array[Array[LiblinearFeature]] =  
     observations.map { features =>

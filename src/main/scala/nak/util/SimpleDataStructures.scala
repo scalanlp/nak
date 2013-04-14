@@ -1,6 +1,6 @@
 package nak.util
 
-class GrowableIndex[T] {
+class GrowableIndex[T] extends (T=>Int) {
   import collection.mutable
 
   var nextIndex = 0

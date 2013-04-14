@@ -1615,7 +1615,8 @@ public class Linear {
             int indexBefore = 0;
             for (Feature n : nodes) {
                 if (n.getIndex() <= indexBefore) {
-                    throw new IllegalArgumentException("feature nodes must be sorted by index in ascending order");
+                    throw new IllegalArgumentException("feature nodes must be sorted by index in ascending order" + 
+                                                       "  Ex: " + indexBefore + ":>" + n.getIndex());
                 }
                 indexBefore = n.getIndex();
             }

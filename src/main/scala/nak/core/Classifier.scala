@@ -92,8 +92,6 @@ object ClassifierUtil {
       }
   }
 
-
-
 }
 
 
@@ -135,6 +133,18 @@ object LiblinearClassifier {
     new LiblinearClassifier(model, labels.zipWithIndex.toMap, features.zipWithIndex.toMap)
 
 }
+
+import nak.data.Featurizer
+class FeaturizedClassifier[I](
+  model: LiblinearModel,
+  lmap: Map[String, Int], 
+  fmap: Map[String, Int],
+  featurizer: Featurizer[I,String]
+) extends LiblinearClassifier(model,lmap,fmap) {
+
+  def apply(content: I) = evalRaw(featurizer(content)).toIndexedSeq
+}
+
 
 /**
  * Train a Liblinear classifier from data.
@@ -245,6 +255,37 @@ object LiblinearTrainer {
     new LiblinearClassifier(model, lmap, fmap)
   }
 
+  import nak.data.{Example,ExampleIndexer}
+  import nak.liblinear.LiblinearConfig
+
+  /**
+   * Train a classifier given responses, observations, and a featurizer that converts
+   * raw observations into String features. Handles indexation of features, and creates
+   * a classifier that can be applied directly to new raw observations.
+   */
+  def train[I](config: LiblinearConfig, 
+               featurizer: Featurizer[I,String], 
+               labels: Seq[String], 
+               rawObservations: Seq[I]) = {
+
+    val rawExamples = for ((l,t) <- labels.zip(rawObservations)) yield 
+      Example(l,t).map(featurizer)
+
+    val indexer = new ExampleIndexer    
+    val examples = rawExamples.map(indexer)
+    val (lmap,fmap) = indexer.getMaps
+        
+    // Configure and train with liblinear.
+    val (responses, observationsAsTuples) = 
+      examples.map(ex => (ex.label, ex.features.map(_.tuple).toSeq)).toSeq.unzip
+    
+    val observations = createLiblinearMatrix(observationsAsTuples)
+    // Train the model, and then return the classifier.
+    val model = new LiblinearTrainer(config)(
+      responses.map(_.toDouble).toArray, observations, fmap.size)
+
+    new FeaturizedClassifier(model, lmap, fmap, featurizer)
+  }
 
   def createLiblinearMatrix(observations: Seq[Seq[(Int,Double)]]): Array[Array[LiblinearFeature]] =  
     observations.map { features =>

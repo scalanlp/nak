@@ -22,15 +22,13 @@ trait StringIndexedClassifier extends IndexedClassifier[String]
 
 trait LinearModelAdaptor extends nak.core.LinearModel with StringIndexedClassifier {
 
-  def eval(observations: Seq[FeatureObservation[Int]]) =
+  def evalIndexed(observations: Seq[FeatureObservation[Int]]): Array[Double] =
     apply(observations.map(_.tuple).toArray)
 
-  //def eval(observations: Array[FeatureObservation[String]]) =
-  //  apply(observations.flatMap(_.mapOption(indexOfFeature)).map(_.tuple))
+  def evalRaw(observations: Seq[FeatureObservation[String]]): Array[Double] =
+    evalIndexed(observations.flatMap(_.mapOption(indexOfFeature)))
 
   def eval(context: Array[String], values: Array[Float]): Array[Double] = {
-    //val fobservations = for ((f,m) <- context.zip(values)) yield
-    //  FeatureObservation(f,m.toDouble)
     val fobservations = 
       for ((f,m) <- context.zip(values);
            fob = FeatureObservation(f,m.toDouble);

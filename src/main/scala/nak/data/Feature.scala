@@ -40,3 +40,10 @@ case class FeatureObservation[F](feature: F, magnitude: Double = 1.0) {
   lazy val tuple = (feature, magnitude)
 
 }
+
+
+trait Featurizer[I,O] extends (I => Seq[FeatureObservation[O]])
+
+class BowFeaturizer extends Featurizer[String, String] {
+  def apply(raw: String) = raw.split("\\s+").map(token => FeatureObservation(token))
+}

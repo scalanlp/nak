@@ -79,3 +79,27 @@ object Example {
 
 }
 
+
+/**
+ * Indexes the labels and features of a series of examples. Can be made much
+ * more general, but just doing what is needed for the time being.
+ */
+class ExampleIndexer 
+extends (Example[String,Seq[FeatureObservation[String]]]
+         => Example[Int,Seq[FeatureObservation[Int]]]) {
+
+  import nak.NakContext._
+  import nak.util.GrowableIndex
+
+  private[this] val lmap = new GrowableIndex[String]()
+  private[this] val fmap = new GrowableIndex[String]()
+  fmap("DUMMY FEATURE BECAUSE LIBLINEAR STARTS WITH 1-BASED INDEX")
+
+  def apply(ex: Example[String,Seq[FeatureObservation[String]]]) =
+    ex.relabel(lmap)
+      .map(_.map(feature => feature.map(fmap)))
+      .map(condense)
+
+  def getMaps = (lmap.toMap, fmap.toMap)
+
+}

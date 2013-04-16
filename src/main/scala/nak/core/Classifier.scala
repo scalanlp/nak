@@ -3,10 +3,17 @@ package nak.core
 import nak.liblinear.{Model => LiblinearModel, FeatureNode, LiblinearConfig, Linear, Problem, Parameter}
 import nak.data.{Example, FeatureObservation}
 
+/**
+ * An object that is able to index features represented as Strings. Non-general at the
+ * moment.
+ */ 
 trait FeatureMap {
   def indexOfFeature(feature: String): Option[Int]
 }
 
+/**
+ * An object that indexes labels and gets labels of indexes.
+ */
 trait LabelMap[L] {
   def indexOfLabel(label: L): Int
   def labelOfIndex(index: Int): L
@@ -134,7 +141,6 @@ object LiblinearClassifier {
 
 }
 
-import nak.data.Featurizer
 class FeaturizedClassifier[I](
   model: LiblinearModel,
   lmap: Map[String, Int], 

@@ -42,19 +42,16 @@ object Classify {
     val opts = ClassifyOpts(args)
 
     // Choose the solver.
-    val solverType = opts.solverType() match {
-      case "L2R_LR" => SolverType.L2R_LR
-      case "L1R_LR" => SolverType.L1R_LR
-    }
+    val solverType = nak.liblinear.Solver(opts.solverType())
 
     // Read and index the examples in the training file.
     val indexer = new ExampleIndexer
     val examples = fromCsvFile(opts.trainfile()).toList.map(indexer)
-    val (lmapFixed,fmapFixed) = indexer.getMaps
+    val (lmap,fmap) = indexer.getMaps
         
     // Configure and train with liblinear.
     val config = new LiblinearConfig(solverType, opts.cost(), opts.eps(), opts.verbose())
-    val classifier = LiblinearTrainer.train(examples, lmapFixed, fmapFixed, config)
+    val classifier = LiblinearTrainer.train(examples, lmap, fmap, config)
 
     // Evaluate if requested.
     if (opts.evalfile.get != None) {
@@ -93,14 +90,14 @@ Classification application.
 For usage see below (nb: some options are currently not supported).
 	     """)
 
-    val solverTypes = Set("GIS","L2R_LR","L1R_LR")
-    val solverType = opt[String]("solverType", default=Some("L2R_LR"), validate = solverTypes, descr="The type of solver to use. Possible values: " + solverTypes.toSeq.sorted.mkString(",") )
+    val solverTypes = nak.liblinear.Solver.solverTypes
+    val solverType = opt[String](
+      "solverType", default=Some("L2R_LR"), validate=solverTypes, 
+      descr="The type of solver to use. Possible values: " 
+      + solverTypes.toSeq.sorted.mkString(",") 
+      + ". See the following for descriptions of each: https://github.com/bwaldvogel/liblinear-java")
 
-    val maxit = opt[Int]("maxit", default=Some(100), validate = (0<), descr="The maximum number of iterations to run (only used for the GIS solver).")
-
-    val cutoff = opt[Int]("cutoff", noshort=true, default=Some(1), validate = (0<), descr="The minumum number of times a feature must be seen. Any that occur less than the cutoff value will be ignored.")
-
-    val cost = opt[Double]("cost", default=Some(1.0), validate = (0<), descr="The cost parameter C. Bigger values means less regularization (more fidelity to the training set). Note: if you are using the GIS solver, this option instead indicates the standard deviation of the Gaussian penalty (bigger values still mean less regularization).")
+    val cost = opt[Double]("cost", default=Some(1.0), validate = (0<), descr="The cost parameter C. Bigger values means less regularization (more fidelity to the training set).")
 
     val eps = opt[Double]("eps", default=Some(0.01), validate = (0<), descr="The tolerance of the stopping criterion. Smaller values mean the parameters found will be better wrt the objective function, but will also entail longer training times (and won't necessarily improve performance).")
 

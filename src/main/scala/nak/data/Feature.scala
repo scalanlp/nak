@@ -42,8 +42,20 @@ case class FeatureObservation[F](feature: F, magnitude: Double = 1.0) {
 }
 
 
+/**
+ * A function that converts objects of some input class into a sequence
+ * of FeatureObservations for an output class O.
+ *
+ * For text classification, I and O will typically be String. E.g. we
+ * convert an entire document into the counts of all the words that
+ * occur in it (see BowFeaturizer).
+ */ 
 trait Featurizer[I,O] extends (I => Seq[FeatureObservation[O]])
 
+/**
+ * A bag-of-words featurizer that simply tokenizes the input String by using
+ * whitespace and creates an observation for each token.
+ */ 
 class BowFeaturizer extends Featurizer[String, String] {
   def apply(raw: String) = raw.split("\\s+").map(token => FeatureObservation(token))
 }

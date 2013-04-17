@@ -16,12 +16,11 @@ class ClassifierSpec extends FunSpec {
 
     it ("should maintain accuracy for PPA data") {
       val dataIndexer = new TwoPassDataIndexer(createTrainingStream(), 1)
-      val model = nak.core.LiblinearTrainer.train(dataIndexer)
+      val config = new nak.liblinear.LiblinearConfig()
+      val model = nak.core.LiblinearTrainer.trainLegacy(config,dataIndexer)
       testModel(model, 0.8202525377568705)
     }
 
   }
-
-
 
 }

@@ -23,6 +23,7 @@ import nak.core._
  * 
  * @author jasonbaldridge
  */ 
+@deprecated(message="This uses the legacy Nak API. See nak.app.Classify and nak.example.PpaExample for use of the new API.", since="1.1.2")
 object LiblinearExample {
 
   import java.io._
@@ -40,7 +41,8 @@ object LiblinearExample {
     val dataIndexer = new TwoPassDataIndexer(new BasicEventStream(new PlainTextByLineDataStream(trainingReader), ","))
 
     // Train the model
-    val classifierTrained = LiblinearTrainer.train(dataIndexer)
+    val config = new LiblinearConfig()
+    val classifierTrained = LiblinearTrainer.trainLegacy(config, dataIndexer)
 
     // Write the model to disk
     val modelFile = "/tmp/example-model.bin.gz"
@@ -67,104 +69,6 @@ object LiblinearExample {
 
     val correct = compare.count{ case(t,p) => t == p }
     println("Accuracy: " + correct/compare.length.toDouble*100)
-  }
-
-}
-
-
-/**
- * This is a second example based on the same data format, but this time
- * computing the features directly w/o using the nak.data classes. It handles
- * creating a feature index and getting the examples into the right data structures
- * for training with the logistic regression classifier, which should serve as a
- * useful example for creating features and classifiers using the API.
- * 
- * @author jasonbaldridge
- */ 
-object LiblinearExample2 {
-
-  import java.io._
-  import nak.liblinear._
-  import nak.util.GrowableIndex
-
-  def main(args: Array[String]) {
-
-    val Array(trainfile,evalfile) = args
-
-    // Feature map
-    val lmap = new GrowableIndex[String]()
-    val fmap = new GrowableIndex[String]()
-    fmap("DUMMY FEATURE BECAUSE LIBLINEAR STARTS WITH 1-BASED INDEX")
-
-    // Read in the training data and index it.
-    val trainingData = SparseCsvDataset(io.Source.fromFile(trainfile))
-      .map { case(label, features) => {
-        val indexedFeatures = features.map(fmap(_))
-        val indexedLabel = lmap(label)
-        (indexedLabel.toDouble, indexedFeatures)
-      }}
-      .toList // Need to consume the lines in order to populate the feature map
-
-    val interceptFeature = (fmap("intercept"),1.0)
-
-    val lmapFixed = lmap.toMap
-    val fmapFixed = fmap.toMap
-
-    val (responses, observations) = trainingData
-      .map{ case(label, features) => (label, makeLibsvmFeatureVector(features) ++ List(interceptFeature)) }
-      .unzip
-
-    // Train the model
-    val model = new LiblinearTrainer(new LiblinearConfig)(responses, observations, fmapFixed.size)
-    val classifier = new LiblinearClassifier(model, lmapFixed, fmapFixed)
-
-    // Read in the evaluation data
-    val evalData = SparseCsvDataset(io.Source.fromFile(evalfile))
-      .map { case(label, features) => {          
-        val indexedFeatures = features.flatMap(fmapFixed.get)
-        (lmapFixed(label), makeLibsvmFeatureVector(indexedFeatures) ++ List(interceptFeature))
-      }}
-
-    // Get the predictions
-    val compare = evalData.map { case (label, features) => {
-      val scores = classifier(features.toArray)
-      val best = scores.zipWithIndex.maxBy(_._1)._2
-      (label, best)
-    }}.toList
-
-    val correct = compare.count{ case(t,p) => t == p }
-    println("Accuracy: " + correct/compare.length.toDouble*100)
-
-  }
-
-  /**
-   * Creates a seq of libsvm format features from the example. Assumes we have
-   * observations of each feature, and these could show up multiple times, so
-   * we count those occurences and use those as the values stored in the
-   * vector.
-   */
-  private def makeLibsvmFeatureVector (example: Seq[Int]) = {
-    import nak.util.CollectionUtil._
-    example.counts.mapValues(_.toDouble).toList.sorted
-  }
-  
-  /**
-   * Read in a dataset and create Examples from it. Don't do any feature indexation,
-   * since for training data we want to build the index, but for eval data we just
-   * want to use it.
-   */
-  object SparseCsvDataset {
-  
-    def apply(dataSource: io.Source): Iterator[(String, Seq[String])] =
-      dataSource
-        .getLines
-        .zipWithIndex
-        .map { case(line,rowId) => { 
-          val lineData = line.split(",")
-          val (features, label) = (lineData.dropRight(1), lineData.last)
-          (label, features)
-        }}
-
   }
 
 }

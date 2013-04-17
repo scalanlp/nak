@@ -1,7 +1,7 @@
 package nak.core
 
 import nak.liblinear.{Model => LiblinearModel, FeatureNode, LiblinearConfig, Linear, Problem, Parameter}
-import nak.data.{Example, FeatureObservation}
+import nak.data.{Example, FeatureObservation,Featurizer}
 
 /**
  * An object that is able to index features represented as Strings. Non-general at the
@@ -21,12 +21,27 @@ trait LabelMap[L] {
 }
 
 
+/**
+ * Classifiers are given a sequence of feature indices and their magnitudes
+ * and return a score for each label.
+ */
 trait Classifier extends (Array[(Int,Double)] => Array[Double])
 
+/**
+ * A classifier that knows the actual descriptions of the labels and features,
+ * rather than just their indices.
+ */
 trait IndexedClassifier[L] extends Classifier with LabelMap[L] with FeatureMap
 
+/**
+ * An IndexedClassifier that outputs String labels.
+ */ 
 trait StringIndexedClassifier extends IndexedClassifier[String]
 
+/**
+ * An adaptor that makes the new Nak API classifiers conform to the legacy
+ * LinearModel that came from OpenNLP.
+ */
 trait LinearModelAdaptor extends nak.core.LinearModel with StringIndexedClassifier {
 
   def evalIndexed(observations: Seq[FeatureObservation[Int]]): Array[Double] =
@@ -49,55 +64,6 @@ trait LinearModelAdaptor extends nak.core.LinearModel with StringIndexedClassifi
   def getOutcome(i: Int) = labelOfIndex(i)
   def getIndex(outcome: String) = indexOfLabel(outcome)
   def getNumOutcomes = numLabels
-
-}
-
-object ClassifierUtil {
-
-  import java.text.DecimalFormat
-
-  /**
-   * Return the name of the outcome corresponding to the highest likelihood
-   * in the parameter ocs.
-   *
-   * @param ocs A double[] as returned by the eval(String[] context)
-   *            method.
-   * @return    The name of the most likely outcome.
-   */
-  def getBestOutcome(model: LinearModel, ocs: Array[Double]) = {
-    var best = 0
-    for (i <- 1 until ocs.length)
-      if (ocs(i) > ocs(best)) best = i
-    model.getOutcome(best)
-  }
-
-
-  /**
-   * Return a string matching all the outcome names with all the
-   * probabilities produced by the <code>eval(String[] context)</code>
-   * method.
-   *
-   * @param ocs A <code>double[]</code> as returned by the
-   *            <code>eval(String[] context)</code>
-   *            method.
-   * @return    String containing outcome names paired with the normalized
-   *            probability (contained in the <code>double[] ocs</code>)
-   *            for each one.
-   */
-  def getAllOutcomes(model: LinearModel, ocs: Array[Double]) = {
-      if (ocs.length != model.getNumOutcomes) {
-          "The double array sent as a parameter to GISModel.getAllOutcomes() must not have been produced by this model."
-      } else {
-        val df =  new DecimalFormat("0.0000")
-        val sb = new StringBuilder(ocs.length * 2)
-        sb.append(model.getOutcome(0)).append("[").append(df.format(ocs(0))).append("]")
-        for (i <- 1 until ocs.length)
-          sb.append("  ")
-            .append(model.getOutcome(i))
-            .append("[").append(df.format(ocs(i))).append("]")
-        sb.toString
-      }
-  }
 
 }
 
@@ -134,13 +100,21 @@ class LiblinearClassifier(
   }
 }
 
+/**
+ * Companion object to help with constructing LiblinearClassifiers.
+ */
 object LiblinearClassifier {
- 
+
   def apply(model: LiblinearModel, labels: Array[String], features: Array[String]) =
     new LiblinearClassifier(model, labels.zipWithIndex.toMap, features.zipWithIndex.toMap)
 
 }
 
+
+/**
+ * A classifier that has a featurizer that allows it to be applied directly to
+ * raw inputs.
+ */
 class FeaturizedClassifier[I](
   model: LiblinearModel,
   lmap: Map[String, Int], 
@@ -198,10 +172,51 @@ class LiblinearTrainer(config: LiblinearConfig) {
 object LiblinearTrainer {
 
   import nak.liblinear.{Feature => LiblinearFeature}
+  import nak.data.{Example,ExampleIndexer}
 
-  def train(
-    indexer: nak.data.DataIndexer, 
-    config: LiblinearConfig = new LiblinearConfig()): LiblinearClassifier = {
+  /**
+   * Train a classifier given responses, observations, and a featurizer that converts
+   * raw observations into String features.
+   */
+  def train[I](config: LiblinearConfig, 
+               featurizer: Featurizer[I,String], 
+               labels: Seq[String], 
+               rawObservations: Seq[I]): FeaturizedClassifier[I] = {
+    val rawExamples = for ((l,t) <- labels.zip(rawObservations)) yield Example(l,t)
+    train(config, featurizer, rawExamples)
+  }
+
+  /**
+   * Trains a classifier given exmamples and featurizer. Handles indexation of features,
+   * and creates a classifier that can be applied directly to new raw observations.
+   */
+  def train[I](config: LiblinearConfig, 
+               featurizer: Featurizer[I,String], 
+               rawExamples: Seq[Example[String, I]]): FeaturizedClassifier[I] = {
+
+    val indexer = new ExampleIndexer    
+    val examples = rawExamples.map(_.map(featurizer)).map(indexer)
+    val (lmap,fmap) = indexer.getMaps
+        
+    // Configure and train with liblinear.
+    val (responses, observationsAsTuples) = 
+      examples.map(ex => (ex.label, ex.features.map(_.tuple).toSeq)).toSeq.unzip
+    
+    val observations = createLiblinearMatrix(observationsAsTuples)
+    // Train the model, and then return the classifier.
+    val model = new LiblinearTrainer(config)(
+      responses.map(_.toDouble).toArray, observations, fmap.size)
+
+    new FeaturizedClassifier(model, lmap, fmap, featurizer)
+  }
+
+
+  /**
+   * Train a Liblinear classifier using examples that have been created from a
+   * legacy DataIndexer.
+   */
+  @deprecated(message="DataIndexers are being phased out.", since="1.1.2")
+  def trainLegacy(config: LiblinearConfig, indexer: nak.data.DataIndexer) = {
 
     val labels = indexer.getOutcomeLabels
     
@@ -233,7 +248,7 @@ object LiblinearTrainer {
     train(responses, observationsAsTuples, labels, features, config)
   }
 
-  def train(
+  private[this] def train(
     responses: Array[Double],
     observationsAsTuples: Array[Array[(Int, Float)]],
     labels: Array[String],
@@ -261,37 +276,6 @@ object LiblinearTrainer {
     new LiblinearClassifier(model, lmap, fmap)
   }
 
-  import nak.data.{Example,ExampleIndexer}
-  import nak.liblinear.LiblinearConfig
-
-  /**
-   * Train a classifier given responses, observations, and a featurizer that converts
-   * raw observations into String features. Handles indexation of features, and creates
-   * a classifier that can be applied directly to new raw observations.
-   */
-  def train[I](config: LiblinearConfig, 
-               featurizer: Featurizer[I,String], 
-               labels: Seq[String], 
-               rawObservations: Seq[I]) = {
-
-    val rawExamples = for ((l,t) <- labels.zip(rawObservations)) yield 
-      Example(l,t).map(featurizer)
-
-    val indexer = new ExampleIndexer    
-    val examples = rawExamples.map(indexer)
-    val (lmap,fmap) = indexer.getMaps
-        
-    // Configure and train with liblinear.
-    val (responses, observationsAsTuples) = 
-      examples.map(ex => (ex.label, ex.features.map(_.tuple).toSeq)).toSeq.unzip
-    
-    val observations = createLiblinearMatrix(observationsAsTuples)
-    // Train the model, and then return the classifier.
-    val model = new LiblinearTrainer(config)(
-      responses.map(_.toDouble).toArray, observations, fmap.size)
-
-    new FeaturizedClassifier(model, lmap, fmap, featurizer)
-  }
 
   def createLiblinearMatrix(observations: Seq[Seq[(Int,Double)]]): Array[Array[LiblinearFeature]] =  
     observations.map { features =>
@@ -304,5 +288,54 @@ object LiblinearTrainer {
         .sortBy(_._1)
         .map{ case(a,v) => new FeatureNode(a,v).asInstanceOf[LiblinearFeature] }
     }}
+
+}
+
+object ClassifierUtil {
+
+  import java.text.DecimalFormat
+
+  /**
+   * Return the name of the outcome corresponding to the highest likelihood
+   * in the parameter ocs.
+   *
+   * @param ocs A double[] as returned by the eval(String[] context)
+   *            method.
+   * @return    The name of the most likely outcome.
+   */
+  def getBestOutcome(model: LinearModel, ocs: Array[Double]) = {
+    var best = 0
+    for (i <- 1 until ocs.length)
+      if (ocs(i) > ocs(best)) best = i
+    model.getOutcome(best)
+  }
+
+
+  /**
+   * Return a string matching all the outcome names with all the
+   * probabilities produced by the <code>eval(String[] context)</code>
+   * method.
+   *
+   * @param ocs A <code>double[]</code> as returned by the
+   *            <code>eval(String[] context)</code>
+   *            method.
+   * @return    String containing outcome names paired with the normalized
+   *            probability (contained in the <code>double[] ocs</code>)
+   *            for each one.
+   */
+  def getAllOutcomes(model: LinearModel, ocs: Array[Double]) = {
+      if (ocs.length != model.getNumOutcomes) {
+          "The double array sent as a parameter to GISModel.getAllOutcomes() must not have been produced by this model."
+      } else {
+        val df =  new DecimalFormat("0.0000")
+        val sb = new StringBuilder(ocs.length * 2)
+        sb.append(model.getOutcome(0)).append("[").append(df.format(ocs(0))).append("]")
+        for (i <- 1 until ocs.length)
+          sb.append("  ")
+            .append(model.getOutcome(i))
+            .append("[").append(df.format(ocs(i))).append("]")
+        sb.toString
+      }
+  }
 
 }

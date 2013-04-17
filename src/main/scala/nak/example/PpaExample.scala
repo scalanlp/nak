@@ -88,8 +88,8 @@ object PpaExample {
     val comparisons = for (ex <- nativeEvalExamples) yield {
 
       // Because the classifier knows about indexation, we only need to extract 
-      // the features from each example and then use evalRaw to that.
-      val scores = classifier.evalRaw(featurizer(ex.features))
+      // the features from each example and then use evalUnindexed on that.
+      val scores = classifier.evalUnindexed(featurizer(ex.features))
 
       // Get the *index* of the best score.
       val best = scores.zipWithIndex.maxBy(_._1)._2

@@ -59,3 +59,11 @@ trait Featurizer[I,O] extends (I => Seq[FeatureObservation[O]])
 class BowFeaturizer extends Featurizer[String, String] {
   def apply(raw: String) = raw.split("\\s+").map(token => FeatureObservation(token))
 }
+
+/**
+ * A trait for classes that can index features represented as Strings. Non-general
+ * at the moment.
+ */ 
+trait FeatureMap {
+  def indexOfFeature(feature: String): Option[Int]
+}

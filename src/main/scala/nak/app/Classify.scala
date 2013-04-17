@@ -60,9 +60,9 @@ object Classify {
 
       // Get the output distributions for the evaluation data.
       val comparisons = for (ex <- evalData) yield {
-	val scores = classifier.evalRaw(ex.features)
+	val scores = classifier.evalUnindexed(ex.features)
 	val best = scores.zipWithIndex.maxBy(_._1)._2
-	(ex.label, classifier.getOutcome(best))
+	(ex.label, classifier.labelOfIndex(best))
       }
 
       // Compute and print out the confusion matrix.

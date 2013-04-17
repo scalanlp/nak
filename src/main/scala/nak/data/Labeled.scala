@@ -25,3 +25,13 @@ package nak.data
 trait Labeled[+L] {
   def label : L
 }
+
+/**
+ * A trait for classes that indexes labels and get labels of indexes.
+ */
+trait LabelMap[L] {
+  def indexOfLabel(label: L): Int
+  def labelOfIndex(index: Int): L
+  def numLabels: Int
+}
+

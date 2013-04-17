@@ -79,6 +79,6 @@ extends nak.io.AbstractModelReader(dataReader) {
 
     val model = new Model(solverType, numLabels, liblinearLabels, numFeatures, bias, parameters)
 
-    LiblinearClassifier(model, labels, features)
+    LinearModelAdaptor(model, labels, features)
   }
 }

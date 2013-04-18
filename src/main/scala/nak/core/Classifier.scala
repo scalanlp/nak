@@ -23,6 +23,8 @@ trait IndexedClassifier[L] extends Classifier with LabelMap[L] with FeatureMap {
   def evalUnindexed(observations: Seq[FeatureObservation[String]]): Array[Double] =
     evalIndexed(observations.flatMap(_.mapOption(indexOfFeature)))
 
+
+
 }
 
 /**
@@ -32,7 +34,7 @@ trait IndexedClassifier[L] extends Classifier with LabelMap[L] with FeatureMap {
 trait FeaturizedClassifier[L,I] extends IndexedClassifier[L] {
   val featurizer: Featurizer[I,String]
 
-  def evalRaw(content: I) = evalUnindexed(featurizer(content)).toIndexedSeq
+  def evalRaw(content: I) = evalUnindexed(featurizer(content))
 }
 
 
@@ -66,6 +68,7 @@ trait LiblinearClassifier extends IndexedClassifier[String] {
     Linear.predictProbability(model, context, labelScores)
     labelScores
   }
+
 }
 
 /**
@@ -182,10 +185,12 @@ object LiblinearTrainer {
    * Train a classifier given responses, observations, and a featurizer that converts
    * raw observations into String features.
    */
-  def train[I](config: LiblinearConfig, 
-               featurizer: Featurizer[I,String], 
-               labels: Seq[String], 
-               rawObservations: Seq[I]): FeaturizedClassifier[String, I] = {
+  def train[I](
+    config: LiblinearConfig, 
+    featurizer: Featurizer[I,String], 
+    labels: Seq[String], 
+    rawObservations: Seq[I]
+  ): LiblinearClassifier with FeaturizedClassifier[String, I] = {
     val rawExamples = for ((l,t) <- labels.zip(rawObservations)) yield Example(l,t)
     train(config, featurizer, rawExamples)
   }
@@ -194,9 +199,11 @@ object LiblinearTrainer {
    * Trains a classifier given exmamples and featurizer. Handles indexation of features,
    * and creates a classifier that can be applied directly to new raw observations.
    */
-  def train[I](config: LiblinearConfig, 
-               featurizer: Featurizer[I,String], 
-               rawExamples: Seq[Example[String, I]]): FeaturizedClassifier[String, I] = {
+  def train[I](
+    config: LiblinearConfig, 
+    featurizer: Featurizer[I,String], 
+    rawExamples: Seq[Example[String, I]]
+  ): LiblinearClassifier with FeaturizedClassifier[String, I] = {
 
     val indexer = new ExampleIndexer    
     val examples = rawExamples.map(_.map(featurizer)).map(indexer)

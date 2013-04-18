@@ -39,4 +39,13 @@ object NakContext {
       .toSeq
       .sortBy(_.feature)
 
+
+  /**
+   * Given the labels and scores that have been produced for each, return the label
+   * with the highest score.
+   */
+  def maxLabel(labels: Seq[String])(scores: Seq[Double]) =
+    labels.zip(scores).maxBy(_._2)._1
+
+
 }

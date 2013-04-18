@@ -32,6 +32,6 @@ trait Labeled[+L] {
 trait LabelMap[L] {
   def indexOfLabel(label: L): Int
   def labelOfIndex(index: Int): L
-  def numLabels: Int
+  def labels: Seq[L]
 }
 

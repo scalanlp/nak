@@ -51,7 +51,7 @@ object Classify {
         
     // Configure and train with liblinear.
     val config = new LiblinearConfig(solverType, opts.cost(), opts.eps(), opts.verbose())
-    val classifier = LiblinearTrainer.train(examples, lmap, fmap, config)
+    val classifier = trainClassifier(config, examples, lmap, fmap)
 
     // Evaluate if requested.
     if (opts.evalfile.get != None) {

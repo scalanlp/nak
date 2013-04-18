@@ -42,3 +42,21 @@ object Solver {
   }
 
 }
+
+
+object LiblinearUtil {
+
+  
+  def createLiblinearMatrix(observations: Seq[Seq[(Int,Double)]]): Array[Array[Feature]] =  
+    observations.map { features =>
+      features.map{ case(a,v) => new FeatureNode(a,v).asInstanceOf[Feature] }.toArray
+    }.toArray
+
+  def createLiblinearMatrix(observations: Array[Array[(Int,Float)]]): Array[Array[Feature]] =  
+    observations.map { features => {
+      features
+        .sortBy(_._1)
+        .map{ case(a,v) => new FeatureNode(a,v).asInstanceOf[Feature] }
+    }}
+
+}

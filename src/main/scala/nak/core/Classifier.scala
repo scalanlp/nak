@@ -1,6 +1,8 @@
 package nak.core
 
 import nak.liblinear.{Model => LiblinearModel, FeatureNode, LiblinearConfig, Linear, Problem, Parameter}
+import nak.liblinear.LiblinearUtil._
+
 import nak.data._
 
 /**
@@ -22,8 +24,6 @@ trait IndexedClassifier[L] extends Classifier with LabelMap[L] with FeatureMap {
 
   def evalUnindexed(observations: Seq[FeatureObservation[String]]): Array[Double] =
     evalIndexed(observations.flatMap(_.mapOption(indexOfFeature)))
-
-
 
 }
 
@@ -51,7 +51,7 @@ trait LiblinearClassifier extends IndexedClassifier[String] {
   import nak.liblinear.{Feature => LiblinearFeature}
 
   // Assumes labels are indexed 0 to n in label map
-  lazy val labels = lmap.toSeq.sortBy(_._2).unzip._1.toArray
+  lazy val labels = lmap.toSeq.sortBy(_._2).unzip._1
   lazy val numLabels = labels.length
 
   def indexOfFeature(feature: String) = fmap.get(feature)
@@ -90,7 +90,7 @@ trait LinearModelAdaptor extends LiblinearClassifier with nak.core.LinearModel {
     
   def getOutcome(i: Int) = labelOfIndex(i)
   def getIndex(outcome: String) = indexOfLabel(outcome)
-  def getNumOutcomes = numLabels
+  lazy val getNumOutcomes = numLabels
 
 }
 
@@ -124,11 +124,11 @@ object Classifier {
       val featurizer = _featurizer
     }
 
-  def createLegacy(_model: LiblinearModel, labels: Array[String], features: Array[String]) =
+  def createLegacy(_model: LiblinearModel, _labels: Array[String], _features: Array[String]) =
     new LinearModelAdaptor { 
       val model = _model
-      val lmap = labels.zipWithIndex.toMap
-      val fmap = features.zipWithIndex.toMap
+      val lmap = _labels.zipWithIndex.toMap
+      val fmap = _features.zipWithIndex.toMap
     }
 
 }
@@ -174,53 +174,9 @@ class LiblinearTrainer(config: LiblinearConfig) {
 }
 
 /**
- * A helper object
+ * Companion object to train classifiers.
  */
 object LiblinearTrainer {
-
-  import nak.liblinear.{Feature => LiblinearFeature}
-  import nak.data.{Example,ExampleIndexer}
-
-  /**
-   * Train a classifier given responses, observations, and a featurizer that converts
-   * raw observations into String features.
-   */
-  def train[I](
-    config: LiblinearConfig, 
-    featurizer: Featurizer[I,String], 
-    labels: Seq[String], 
-    rawObservations: Seq[I]
-  ): LiblinearClassifier with FeaturizedClassifier[String, I] = {
-    val rawExamples = for ((l,t) <- labels.zip(rawObservations)) yield Example(l,t)
-    train(config, featurizer, rawExamples)
-  }
-
-  /**
-   * Trains a classifier given exmamples and featurizer. Handles indexation of features,
-   * and creates a classifier that can be applied directly to new raw observations.
-   */
-  def train[I](
-    config: LiblinearConfig, 
-    featurizer: Featurizer[I,String], 
-    rawExamples: Seq[Example[String, I]]
-  ): LiblinearClassifier with FeaturizedClassifier[String, I] = {
-
-    val indexer = new ExampleIndexer    
-    val examples = rawExamples.map(_.map(featurizer)).map(indexer)
-    val (lmap,fmap) = indexer.getMaps
-        
-    // Configure and train with liblinear.
-    val (responses, observationsAsTuples) = 
-      examples.map(ex => (ex.label, ex.features.map(_.tuple).toSeq)).toSeq.unzip
-    
-    val observations = createLiblinearMatrix(observationsAsTuples)
-    // Train the model, and then return the classifier.
-    val model = new LiblinearTrainer(config)(
-      responses.map(_.toDouble).toArray, observations, fmap.size)
-
-    Classifier(model, lmap, fmap, featurizer)
-  }
-
 
   /**
    * Train a Liblinear classifier using examples that have been created from a
@@ -256,49 +212,13 @@ object LiblinearTrainer {
         c.zip(v).groupBy(_._1).mapValues(_.map(_._2)).mapValues(_.sum.toFloat).toArray
     }
 
-    train(responses, observationsAsTuples, labels, features, config)
-  }
-
-  private[this] def train(
-    responses: Array[Double],
-    observationsAsTuples: Array[Array[(Int, Float)]],
-    labels: Array[String],
-    features: Array[String], 
-    config: LiblinearConfig): LinearModelAdaptor = {
-    
     val observations = createLiblinearMatrix(observationsAsTuples)
+
     // Train the model, and then return the classifier.
     val model = new LiblinearTrainer(config)(responses, observations, features.length)
     Classifier.createLegacy(model, labels, features)
   }
 
-  def train(
-    examples: TraversableOnce[Example[Int,Seq[FeatureObservation[Int]]]],
-    lmap: Map[String, Int], 
-    fmap: Map[String, Int],
-    config: LiblinearConfig): LiblinearClassifier = {
-  
-    val (responses, observationsAsTuples) = 
-      examples.map(ex => (ex.label, ex.features.map(_.tuple).toSeq)).toSeq.unzip
-    
-    val observations = createLiblinearMatrix(observationsAsTuples)
-    // Train the model, and then return the classifier.
-    val model = new LiblinearTrainer(config)(responses.map(_.toDouble).toArray, observations, fmap.size)
-    Classifier(model, lmap, fmap)
-  }
-
-
-  def createLiblinearMatrix(observations: Seq[Seq[(Int,Double)]]): Array[Array[LiblinearFeature]] =  
-    observations.map { features =>
-      features.map{ case(a,v) => new FeatureNode(a,v).asInstanceOf[LiblinearFeature] }.toArray
-    }.toArray
-
-  def createLiblinearMatrix(observations: Array[Array[(Int,Float)]]): Array[Array[LiblinearFeature]] =  
-    observations.map { features => {
-      features
-        .sortBy(_._1)
-        .map{ case(a,v) => new FeatureNode(a,v).asInstanceOf[LiblinearFeature] }
-    }}
 
 }
 

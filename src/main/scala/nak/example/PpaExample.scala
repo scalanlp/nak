@@ -107,3 +107,75 @@ object PpaExample {
   }
 
 }
+
+
+/**
+ * An example of using the API to classify the prepositional phrase attachment
+ * data.
+ *
+ * @author jasonbaldridge
+ */
+object PpaExample2 {
+
+  def main(args: Array[String]) {
+    val Array(trainfile,evalfile) = args
+
+    // Read and index the examples in the training file.
+    val PpaLineRE = """^(\d+)\s(.*)\s(N|V)$""".r
+
+    // A function that reads the format of the PPA files and turns them into
+    // examples. E.g. a line like:
+    //   0 join board as director V
+    // becames an Example with "V" as the label, and "join board as director"
+    // as the features. Normally we'd go ahead and transform this into better
+    // features, but this shows what you'd be more likely to do if reading in
+    // documents.
+    def readNative(filename: String) = 
+      for (PpaLineRE(id,obs,label) <- io.Source.fromFile(filename).getLines)
+        yield Example(label, obs)
+
+    // Get the training examples in their native format.  
+    val nativeExamples = readNative(trainfile).toList
+    println("Native example: " + nativeExamples.head)
+
+    // A featurizer that simply splits the native inputs and attaches the
+    // appropriate attributes to each of the elements.
+    val featurizer = new Featurizer[String,String] {
+      def apply(input: String) = {
+        val attributes = Array("verb","object","prep","prep-obj")
+        val values = input.split("\\s")
+        for ((a,v) <- attributes.zip(values)) 
+          yield FeatureObservation(a+"="+v)
+      }
+    }
+
+    // Configure and train with liblinear. Here we use the L2-Regularized 
+    // Logistic Regression classifier with a C value of .5. We accept the default
+    // eps and verbosity values.
+    val config = new LiblinearConfig(Solver("L2R_LR"), .5)
+    val classifier = LiblinearTrainer.train(config, featurizer, nativeExamples)
+
+    // Make predictions on the evaluation data. 
+    val nativeEvalExamples = readNative(evalfile).toList
+    val comparisons = for (ex <- nativeEvalExamples) yield {
+
+      // Because the classifier knows about indexation, we only need to extract 
+      // the features from each example and then use evalUnindexed on that.
+      val scores = classifier.evalRaw(ex.features)
+
+      // Get the *index* of the best score.
+      val best = scores.zipWithIndex.maxBy(_._1)._2
+
+      // Output both the true label and the predicted label.
+      (ex.label, classifier.labelOfIndex(best))
+    }
+
+    // Compute and print out the confusion matrix based on the comparisons 
+    // obtained above.
+    val (goldLabels, predictions) = comparisons.unzip
+    val inputs = nativeEvalExamples.map(_.features)
+    val cmatrix = ConfusionMatrix(goldLabels, predictions, inputs)
+    println(cmatrix)
+  }
+
+}

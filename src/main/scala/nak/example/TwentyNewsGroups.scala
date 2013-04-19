@@ -35,7 +35,7 @@ object TwentyNewsGroupsExample {
   import nak.NakContext._
   import nak.core._
   import nak.data._
-  import nak.liblinear.{LiblinearConfig,Solver}
+  import nak.liblinear.LiblinearConfig
   import nak.util.ConfusionMatrix
 
   import java.io.File

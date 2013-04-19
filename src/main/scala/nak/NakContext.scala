@@ -18,7 +18,7 @@ package nak
 
 import nak.core._
 import nak.data._
-import nak.liblinear.{Model => LiblinearModel, LiblinearConfig}
+import nak.liblinear.{Model => LiblinearModel, LiblinearConfig, LiblinearTrainer}
 import nak.liblinear.LiblinearUtil._
 
 import scala.collection.JavaConversions._
@@ -93,6 +93,49 @@ object NakContext {
     fmap: Map[String, Int]
   ): IndexedClassifier[String] = 
     Classifier(trainModel(config,examples,fmap.size), lmap, fmap)
+
+
+  /**
+   * Train a Liblinear classifier using examples that have been created from a
+   * legacy DataIndexer.
+   */
+  @deprecated(message="DataIndexers are being phased out.", since="1.1.2")
+  def trainClassifier(config: LiblinearConfig, indexer: nak.data.DataIndexer) = {
+
+    val labels = indexer.getOutcomeLabels
+    
+    // We unfortunately need to fix up the contexts so that feature indices start at 1.
+    val zeroBasedFeatures = indexer.getPredLabels
+    val zeroReindex = zeroBasedFeatures.length
+    val features = zeroBasedFeatures ++ Array(zeroBasedFeatures(0))
+    features(0) = "DUMMY FEATURE"
+    
+    val contexts = indexer.getContexts.map { context => {
+      context.map { _ match {
+        case 0 => zeroReindex
+        case x => x
+      }}
+    }}
+
+    // Use values of 1.0 if the features were binary.
+    val values = 
+      if (indexer.getValues != null) indexer.getValues
+      else contexts.map(_.map(x=>1.0f))
+
+    // Get the responses and observations ready for Liblinear
+    val responses = indexer.getOutcomeList.map(_.toDouble)
+    val observationsAsTuples = contexts.zip(values).map{ 
+      case (c,v) => 
+        c.zip(v).groupBy(_._1).mapValues(_.map(_._2)).mapValues(_.sum.toFloat).toArray
+    }
+
+    val observations = createLiblinearMatrix(observationsAsTuples)
+
+    // Train the model, and then return the classifier.
+    val model = new LiblinearTrainer(config)(responses, observations, features.length)
+    Classifier.createLegacy(model, labels, features)
+  }
+
 
   /**
    * Trains a liblinear model given indexed examples. Note: a model is basically just the

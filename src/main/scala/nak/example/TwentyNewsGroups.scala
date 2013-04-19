@@ -53,7 +53,7 @@ object TwentyNewsGroupsExample {
     print("Training... ")
     val trainDir = new File(newsgroupsDir, "20news-bydate-train")
     val trainingExamples = fromLabeledDirs(trainDir).toList
-    val config = new LiblinearConfig(cost=5.0)
+    val config = LiblinearConfig(cost=5.0)
     val featurizer = new BowFeaturizer(stopwords)
     val classifier = trainClassifier(config, featurizer, trainingExamples)
     println("done.")

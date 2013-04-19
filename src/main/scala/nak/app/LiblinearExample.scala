@@ -27,6 +27,7 @@ import nak.core._
 object LiblinearExample {
 
   import java.io._
+  import nak.NakContext._
   import nak.liblinear._
   import nak.util.GrowableIndex
   import nak.data._
@@ -42,7 +43,7 @@ object LiblinearExample {
 
     // Train the model
     val config = new LiblinearConfig()
-    val classifierTrained = LiblinearTrainer.trainLegacy(config, dataIndexer)
+    val classifierTrained = trainClassifier(config, dataIndexer)
 
     // Write the model to disk
     val modelFile = "/tmp/example-model.bin.gz"

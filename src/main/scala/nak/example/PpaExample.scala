@@ -66,7 +66,7 @@ object PpaExample {
     // Configure and train with liblinear. Here we use the (default) L2-Regularized 
     // Logistic Regression classifier with a C value of .5. We accept the default
     // eps and verbosity values.
-    val config = new LiblinearConfig(cost=.5)
+    val config = LiblinearConfig(cost=.5)
     val classifier = trainClassifier(config, featurizer, rawExamples)
 
     // Partially apply the labels to the curried 2-arg NakContext.maxLabel function 

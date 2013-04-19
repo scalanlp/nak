@@ -3,12 +3,27 @@ package nak.liblinear
 /**
  * Configure the options for Liblinear training.
  */
-class LiblinearConfig(
-  val solverType: SolverType = SolverType.L2R_LR,
-  val cost: Double = 1.0, 
-  val eps: Double = 0.01, 
-  val showDebug: Boolean = false)
+case class LiblinearConfig(
+  solverType: SolverType = SolverType.L2R_LR,
+  cost: Double = 1.0, 
+  eps: Double = 0.01, 
+  showDebug: Boolean = false)
 
+/**
+ * Set up a problem to be solved.
+ */ 
+object LiblinearProblem {
+
+  def apply(responses: Array[Double], observations: Array[Array[Feature]], numFeats: Int) = {
+    val problem = new Problem
+    problem.y = responses
+    problem.x = observations
+    problem.l = responses.length
+    problem.n = numFeats
+    problem
+  }
+
+}
 
 /**
  * An object to help with solver descriptions.
@@ -43,15 +58,25 @@ object Solver {
 
 }
 
-
+/**
+ * Helper functions for working with Liblinear.
+ */
 object LiblinearUtil {
 
-  
+
+  /**
+   * Convert tuples into Liblinear Features, basically.
+   */ 
   def createLiblinearMatrix(observations: Seq[Seq[(Int,Double)]]): Array[Array[Feature]] =  
     observations.map { features =>
       features.map{ case(a,v) => new FeatureNode(a,v).asInstanceOf[Feature] }.toArray
     }.toArray
 
+  /**
+   * Convert tuples into Liblinear Features, basically.
+   *
+   * TODO: Condense so there is just one createLiblinearMatrix.
+   */ 
   def createLiblinearMatrix(observations: Array[Array[(Int,Float)]]): Array[Array[Feature]] =  
     observations.map { features => {
       features
@@ -60,3 +85,31 @@ object LiblinearUtil {
     }}
 
 }
+
+/**
+ * Train a Liblinear classifier from data.
+ * 
+ * @author jasonbaldridge
+ */
+class LiblinearTrainer(config: LiblinearConfig) {
+
+  import LiblinearUtil._
+
+  if (!config.showDebug) Linear.disableDebugOutput
+  val param = new Parameter(config.solverType, config.cost, config.eps)
+
+  /**
+   * Train a liblinear model given the responses (the y's), the observations (the x's),
+   * and the number of features.
+   */ 
+  def apply(
+    responses: Array[Double], 
+    observations: Array[Array[Feature]], 
+    numFeatures: Int
+  ): Model = {
+    val problem = LiblinearProblem(responses, observations, numFeatures)
+    Linear.train(problem, param)
+  }
+
+}
+

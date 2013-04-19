@@ -1,9 +1,24 @@
 package nak.core
 
-import nak.liblinear.{Model => LiblinearModel, FeatureNode, LiblinearConfig, Linear, Problem, Parameter}
-import nak.liblinear.LiblinearUtil._
+/**
+ Copyright 2013 Jason Baldridge
+ 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at 
+ 
+ http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License. 
+*/
 
 import nak.data._
+import nak.liblinear.{Model => LiblinearModel, LiblinearConfig}
+import nak.liblinear.LiblinearUtil._
 
 /**
  * Classifiers are given a sequence of feature indices and their magnitudes
@@ -11,6 +26,11 @@ import nak.data._
  */
 trait Classifier extends (Array[(Int,Double)] => Array[Double]) {
 
+  /**
+   * Evaluate the given indexed feature observations. Calls the apply method,
+   * which must interface with some underlying representation of the system
+   * used; e.g. see the LiblinearClassifier class.
+   */ 
   def evalIndexed(observations: Seq[FeatureObservation[Int]]): Array[Double] =
     apply(observations.map(_.tuple).toArray)
 
@@ -22,6 +42,10 @@ trait Classifier extends (Array[(Int,Double)] => Array[Double]) {
  */
 trait IndexedClassifier[L] extends Classifier with LabelMap[L] with FeatureMap {
 
+  /**
+   * Evaluate the un-indexed feature observations. Uses the feature map to
+   * index the observations and then pass them on to evalIndexed of Classifier.
+   */ 
   def evalUnindexed(observations: Seq[FeatureObservation[String]]): Array[Double] =
     evalIndexed(observations.flatMap(_.mapOption(indexOfFeature)))
 
@@ -34,6 +58,10 @@ trait IndexedClassifier[L] extends Classifier with LabelMap[L] with FeatureMap {
 trait FeaturizedClassifier[L,I] extends IndexedClassifier[L] {
   val featurizer: Featurizer[I,String]
 
+  /**
+   * Evaluate a raw observation by featurizing it and then calling evalUnindexed
+   * of IndexedClassifier.
+   */ 
   def evalRaw(content: I) = evalUnindexed(featurizer(content))
 }
 
@@ -48,24 +76,37 @@ trait LiblinearClassifier extends IndexedClassifier[String] {
   val lmap: Map[String, Int] 
   val fmap: Map[String, Int]
 
-  import nak.liblinear.{Feature => LiblinearFeature}
+  import nak.liblinear.{Linear, FeatureNode, Feature => LiblinearFeature}
 
   // Assumes labels are indexed 0 to n in label map
   lazy val labels = lmap.toSeq.sortBy(_._2).unzip._1
   lazy val numLabels = labels.length
 
-  def indexOfFeature(feature: String) = fmap.get(feature)
+  /** Get the index of a label. */ 
   def indexOfLabel(label: String) = lmap(label)
+
+  /** Get the label at the given index. */ 
   def labelOfIndex(index: Int) = labels(index)
 
+  /** Get the index of a feature. */ 
+  def indexOfFeature(feature: String) = fmap.get(feature)
+
+  /**
+   * Declare the model type. Used for legacy model saving; will be phased out soon.
+   */ 
   val getModelType = nak.core.AbstractModel.ModelType.Liblinear
 
-  def apply(context: Array[(Int,Double)]): Array[Double] =
-    predict(context.map(c=>new FeatureNode(c._1,c._2).asInstanceOf[LiblinearFeature]))
-
-  def predict(context: Array[LiblinearFeature]): Array[Double] = {
+  /**
+   * Implement the apply method of Classifier by transforming the tuples into
+   * Liblinear Features and then calling Linear.predictProbability.
+   *
+   * TODO: This should be made more general so that the SVM solvers can be used
+   * by Nak.
+   */ 
+  def apply(context: Array[(Int,Double)]): Array[Double] = {
+    val ctxt = context.map(c=>new FeatureNode(c._1,c._2).asInstanceOf[LiblinearFeature])
     val labelScores = Array.fill(numLabels)(0.0)
-    Linear.predictProbability(model, context, labelScores)
+    Linear.predictProbability(model, ctxt, labelScores)
     labelScores
   }
 
@@ -75,6 +116,7 @@ trait LiblinearClassifier extends IndexedClassifier[String] {
  * An adaptor that makes the new Nak API classifiers conform to the legacy
  * LinearModel that came from OpenNLP.
  */
+@deprecated(message="Allows liblinear classifiers to implement the legacy API, but this be phased out soon.",since="1.1.2")
 trait LinearModelAdaptor extends LiblinearClassifier with nak.core.LinearModel {
 
   def eval(context: Array[String], values: Array[Float]): Array[Double] = {
@@ -101,11 +143,22 @@ trait LinearModelAdaptor extends LiblinearClassifier with nak.core.LinearModel {
  */
 object Classifier {
 
+  /**
+   * Create an IndexedClassifier given a model and arrays for labels and
+   * features (where the index of feature in the array is the index of the
+   * parameter in the model).
+   */ 
   def apply(_model: LiblinearModel, 
             labels: Array[String], 
-            features: Array[String]): LiblinearClassifier =
+            features: Array[String]): IndexedClassifier[String] =
     apply(_model, labels.zipWithIndex.toMap, features.zipWithIndex.toMap)
 
+
+  /**
+   * Create an IndexedClassifier given a model and arrays for labels and
+   * features (where the index of feature in the array is the index of the
+   * parameter in the model).
+   */ 
   def apply(_model: LiblinearModel, _lmap: Map[String,Int], _fmap: Map[String,Int]) =
     new LiblinearClassifier {
       val model = _model
@@ -113,6 +166,11 @@ object Classifier {
       val fmap = _fmap
     }
 
+  /**
+   * Create an classifier that is indexed and contains a featurizer, given a model,
+   * a featurizer, and maps giving the indices of the labels and features (where the
+   * index of feature in the array is the index of the parameter in the model).
+   */ 
   def apply[I](_model: LiblinearModel, 
                _lmap: Map[String,Int],
                _fmap: Map[String,Int],
@@ -124,6 +182,13 @@ object Classifier {
       val featurizer = _featurizer
     }
 
+  /**
+   * Create an LinearModelAdaptor given a model and arrays for labels and
+   * features (where the index of feature in the array is the index of the
+   * parameter in the model). (LinearModelAdaptor implements the LinearModel
+   * interface from the legacy OpenNLP API.)
+   */ 
+  @deprecated(message="Use new API classifiers instead.", since="1.1.2")
   def createLegacy(_model: LiblinearModel, _labels: Array[String], _features: Array[String]) =
     new LinearModelAdaptor { 
       val model = _model
@@ -141,7 +206,7 @@ object Classifier {
  */
 class LiblinearTrainer(config: LiblinearConfig) {
 
-  import nak.liblinear.{Feature => LiblinearFeature}
+  import nak.liblinear.{FeatureNode, Linear, Problem, Parameter, Feature => LiblinearFeature}
   import nak.data.Example
   import LiblinearTrainer._
 

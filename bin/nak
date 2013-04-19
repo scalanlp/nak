@@ -27,7 +27,7 @@ shift
 help()
 {
 cat <<EOF
-nak 1.1.1 commands: 
+nak 1.1.2 commands: 
 
   app           run the main method of a given class in the nak.app package
   classify      run the classifiction application (nak.app.Classify)

@@ -1,12 +1,29 @@
 package nak
 
-import java.io.{BufferedReader,FileReader}
+/**
+ Copyright 2013 Jason Baldridge
+ 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at 
+ 
+ http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License. 
+*/
 
 import nak.core._
 import nak.data._
-
 import nak.liblinear.{Model => LiblinearModel, LiblinearConfig}
 import nak.liblinear.LiblinearUtil._
+
+import scala.collection.JavaConversions._
+import scala.io.Source
+import java.io.{File,BufferedReader,FileReader}
 
 /**
  * An object that provides common functions needed for using Nak.
@@ -19,7 +36,7 @@ object NakContext {
    * Convert examples stored in CSV format (one per line) into a sequence of Examples.
    */
   def fromCsvFile(filename: String): Iterator[Example[String,Seq[FeatureObservation[String]]]] = {
-    for (line <- scala.io.Source.fromFile(filename).getLines) yield {
+    for (line <- Source.fromFile(filename).getLines) yield {
       val items = line.split(",")
       val features = items.dropRight(1).map(descr=>FeatureObservation(descr))
       val label = items.last
@@ -28,28 +45,19 @@ object NakContext {
   }
 
   /**
-   * Given a sequence of feature observations (a feature and its magnitude), combine
-   * multiple instances of the same feature, and then sort the result.
-   *
-   * E.g. Seq[("foo",1.0),("bar",1.0),("foo",2.0)]
-   *  becomes
-   *      Seq[("bar",1.0),("foo",3.0)]
-   */
-  def condense(features: Seq[FeatureObservation[Int]]) =
-    features
-      .groupBy(_.feature)
-      .values
-      .map(_.reduce(_+_))
-      .toSeq
-      .sortBy(_.feature)
-
-
-  /**
-   * Given the labels and scores that have been produced for each, return the label
-   * with the highest score.
-   */
-  def maxLabel(labels: Seq[String])(scores: Seq[Double]) =
-    labels.zip(scores).maxBy(_._2)._1
+   * Convert examples that are stored as files in directories, where each directory name acts
+   * as the label for all the files it contains. (E.g. the 20 News Groups data.)
+   */ 
+  def fromLabeledDirs(topdir: File)(implicit codec: scala.io.Codec): Iterator[Example[String,String]] = {
+    for (dir <- topdir.listFiles.toIterator.filter(_.isDirectory);
+         label = dir.getName;
+         file <- dir.listFiles.toIterator) yield {
+      val fileSource = Source.fromFile(file);
+      val text = fileSource.mkString;
+      fileSource.close
+      Example(label, text, file.getName)
+    }
+  }
 
 
   /**
@@ -101,6 +109,31 @@ object NakContext {
     val observations = createLiblinearMatrix(observationsAsTuples)
     new LiblinearTrainer(config)(responses.map(_.toDouble).toArray, observations, numFeatures)
   }
+
+
+  /**
+   * Given a sequence of feature observations (a feature and its magnitude), combine
+   * multiple instances of the same feature, and then sort the result.
+   *
+   * E.g. Seq[("foo",1.0),("bar",1.0),("foo",2.0)]
+   *  becomes
+   *      Seq[("bar",1.0),("foo",3.0)]
+   */
+  def condense(features: Seq[FeatureObservation[Int]]) =
+    features
+      .groupBy(_.feature)
+      .values
+      .map(_.reduce(_+_))
+      .toSeq
+      .sortBy(_.feature)
+
+
+  /**
+   * Given the labels and scores that have been produced for each, return the label
+   * with the highest score.
+   */
+  def maxLabel(labels: Seq[String])(scores: Seq[Double]) =
+    labels.zip(scores).maxBy(_._2)._1
 
 
 }

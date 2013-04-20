@@ -210,6 +210,7 @@ object ClassifierUtil {
    *            method.
    * @return    The name of the most likely outcome.
    */
+  @deprecated(message="Use Classifier rather than LinearModel.", since="1.1.2")
   def getBestOutcome(model: LinearModel, ocs: Array[Double]) = {
     var best = 0
     for (i <- 1 until ocs.length)
@@ -230,6 +231,7 @@ object ClassifierUtil {
    *            probability (contained in the <code>double[] ocs</code>)
    *            for each one.
    */
+  @deprecated(message="Use Classifier rather than LinearModel.", since="1.1.2")
   def getAllOutcomes(model: LinearModel, ocs: Array[Double]) = {
       if (ocs.length != model.getNumOutcomes) {
           "The double array sent as a parameter to GISModel.getAllOutcomes() must not have been produced by this model."

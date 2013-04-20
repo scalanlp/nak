@@ -1,22 +1,25 @@
 # Nak
 
-Authors: 
-* **Jason Baldridge** (jasonbaldridge@gmail.com)
-* **Dan Garrette** (dhg@cs.utexas.edu)
+Nak is a Scala/Java library for machine learning and related tasks, with a focus on having an easy to use API for some standard algorithms. It is formed from [Breeze](https://github.com/scalanlp/breeze), [Liblinear Java](http://liblinear.bwaldvogel.de/), [the OpenNLP Maxent package](http://opennlp.apache.org/) and [Scalabha](https://github.com/utcompling/Scalabha). It is currently undergoing a pretty massive evolution, so be prepared for quite big changes in the API for this and probably several future versions. 
 
-See the NOTICE file for listings of other contributions that have been absorbed into Nak.
-
-## Introduction
-
-Nak is a library for machine learning and related tasks, with a focus on having an easy to use API for some standard algorithms. It is formed from the OpenNLP Maxent package, and the intent is to evolve it as a Scala library with further capabilities. It will be developed in particular with the natural language processing library [Chalk](https://github.com/scalanlp/chalk) in mind. Use of [Breeze](https://github.com/scalanlp/breeze) is likely in Nak's future.
-
-Like Chalk, the name Nak comes from one of Jason's son's stuffed elephants. (He really likes elephants.)
+We'd love to have some more contributors: if you are interested in helping out, please see [the #helpwanted issues](https://github.com/scalanlp/nak/issues/search?q=%23helpwanted) or suggest your own ideas.
 
 ## What's inside
 
-The latest stable release of Nak is 1.1.1. It includes:
-* Massive reorganization of the sub-packages.
-* Added nak.liblinear (using the Java liblinear package) and added nak.app.Classify that uses liblinear logistic regression solvers as well as GIS.
+Nak currently provides implementations for k-means clustering and supervised learning with logistic regression and support vector machines. Other algorithms will be added soon, especially due to the planned merger of [breeze.learn](https://github.com/scalanlp/breeze/tree/master/learn) with Nak. (See [the ScalaNLP roadmap](https://github.com/scalanlp/breeze/wiki/ScalaNLP-Roadmap) for details.)
+
+See [the Nak wiki](https://github.com/scalanlp/nak/wiki) for (some preliminary) documentation.
+
+The latest stable release of Nak is 1.1.2. Changes from the previous release include:
+
+* Incorporated breeze.data classes into nak.data and updated liblinear training and model use to work with these rather than the legacy opennlp classes.
+* Added nak.data.Featurizer and nak.core.FeaturizedClassifier, which handle turning raw data into collections of features. When combined with IndexedClassifier, the indexation of these features is handled automatically so that a user of the API doesn't need to ever worry about the low level and can focus on the data and feature extraction. 
+* Added NakContext object (inspired by SparkContext), which provides a number of utility methods for getting classifiers up and running.
+* Added nak.example package, with example implementations for prepositional phrase attachment (PpaExample) and text classification (TwentyNewsGroupsExample).
+* Added nak.util.ConfusionMatrix class, which provides detailed error output.
+* Added ScalaTest and started writing BDD tests.
+* Refactored a lot of code to get rid of duplication.
+* Added code documentation to many classes and functions.
 
 See the [CHANGELOG](https://github.com/scalanlp/nak/wiki/CHANGELOG) for changes in previous versions.
 
@@ -24,73 +27,47 @@ See the [CHANGELOG](https://github.com/scalanlp/nak/wiki/CHANGELOG) for changes 
 
 In SBT:
 
-    libraryDependencies += "org.scalanlp" % "nak" % "1.1.1"
+    libraryDependencies += "org.scalanlp" % "nak" % "1.1.2"
 
 In Maven:
 
     <dependency>
        <groupId>org.scalanlp</groupId>
        <artifactId>nak</artifactId>
-       <version>1.1.1</version>
+       <version>1.1.2</version>
     </dependency>
 
 **Note**: There is one dependency that won't get pulled along: pca_transform-0.7.2.jar in the lib directory is not available on any repository, so you'll need to add that to your classpath by hand if (and only if) you want to be able to use PCA transformations for input to k-means.
 
-There is no dedicated documentation for Nak as yet, but you can see some use of the k-means clustering code in [homework three](https://github.com/utcompling/applied-nlp/wiki/Homework3) and the classification code in [homework four](https://github.com/utcompling/applied-nlp/wiki/Homework4) for Jason's [Applied NLP course](https://github.com/utcompling/applied-nlp/wiki). 
+## Example
 
-## Requirements
-
-* Version 1.6 of the Java 2 SDK (http://java.sun.com)
-
-## Configuring your environment variables
-
-The easiest thing to do is to set the environment variables `JAVA_HOME`
-and `NAK_DIR` to the relevant locations on your system. Set `JAVA_HOME`
-to match the top level directory containing the Java installation you
-want to use.
-
-Next, add the directory `NAK_DIR/bin` to your path. For example, you
-can set the path in your `.bashrc` file as follows:
-
-	export PATH=$PATH:$NAK_DIR/bin
-
-Once you have taken care of these three things, you should be able to
-build and use Nak.
+Here's an example of how easy it is to train and evaluate a text classifier using Nak. See [TwentyNewsGroups.scala](https://github.com/scalanlp/nak/blob/master/src/main/scala/nak/example/TwentyNewsGroups.scala) for more details.
 
 
-## Building the system from source
+```scala
+def main(args: Array[String]) {
+  val newsgroupsDir = new File(args(0))
+  implicit val isoCodec = scala.io.Codec("ISO-8859-1")
+  val stopwords = Set("the","a","an","of","in","for","by","on")
 
-Nak uses SBT (Simple Build Tool) with a standard directory
-structure.  To build Nak, type (in the `$NAK_DIR` directory):
+  val trainDir = new File(newsgroupsDir, "20news-bydate-train")
+  val trainingExamples = fromLabeledDirs(trainDir).toList
+  val config = LiblinearConfig(cost=5.0)
+  val featurizer = new BowFeaturizer(stopwords)
+  val classifier = trainClassifier(config, featurizer, trainingExamples)
 
-	$ ./build update compile
+  val evalDir = new File(newsgroupsDir, "20news-bydate-test")
+  val maxLabelNews = maxLabel(classifier.labels) _
+  val comparisons = for (ex <- fromLabeledDirs(evalDir).toList) yield 
+    (ex.label, maxLabelNews(classifier.evalRaw(ex.features)), ex.features)
+  val (goldLabels, predictions, inputs) = comparisons.unzip3
+  println(ConfusionMatrix(goldLabels, predictions, inputs))
+}
+```
 
-This will compile the source files and put them in
-`./target/classes`. If this is your first time running it, you will see
-messages about Scala being downloaded -- this is fine and
-expected. Once that is over, the Nak code will be compiled.
-
-To try out other build targets, do:
-
-	$ ./build
-
-This will drop you into the SBT interface. To see the actions that are
-possible, hit the TAB key. (In general, you can do auto-completion on
-any command prefix in SBT, hurrah!)
-
-To make sure all the tests pass, do:
-
-	$ ./build test
-
-Documentation for SBT is at <http://www.scala-sbt.org/>
-
-Note: if you have SBT already installed on your system, you can
-also just call it directly with "sbt" in `NAK_DIR`.
 
 # Questions or suggestions?
 
-Email Jason Baldridge: <jasonbaldridge@gmail.com>
-
-Or, create an issue: <https://github.com/scalanlp/nak/issues>
+Post a message to the [scalanlp-discuss](https://groups.google.com/forum/?fromgroups#!forum/scalanlp-discuss) mailing list or create [an issue](https://github.com/scalanlp/nak/issues).
 
 

@@ -66,7 +66,7 @@ def main(args: Array[String]) {
 ```
 
 
-# Questions or suggestions?
+## Questions or suggestions?
 
 Post a message to the [scalanlp-discuss](https://groups.google.com/forum/?fromgroups#!forum/scalanlp-discuss) mailing list or create [an issue](https://github.com/scalanlp/nak/issues).
 

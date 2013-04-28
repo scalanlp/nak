@@ -63,6 +63,15 @@ trait FeaturizedClassifier[L,I] extends IndexedClassifier[L] {
    * of IndexedClassifier.
    */ 
   def evalRaw(content: I) = evalUnindexed(featurizer(content))
+
+
+  /**
+   * Evaluate a raw observation by using evalRaw, identify the highest
+   * scoring label, and then return it.
+   */ 
+  def predict(content: I) = 
+    labelOfIndex(evalRaw(content).zipWithIndex.maxBy(_._1)._2)
+
 }
 
 

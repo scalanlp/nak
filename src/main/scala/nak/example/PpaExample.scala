@@ -69,14 +69,10 @@ object PpaExample {
     val config = LiblinearConfig(cost=.5)
     val classifier = trainClassifier(config, featurizer, rawExamples)
 
-    // Partially apply the labels to the curried 2-arg NakContext.maxLabel function 
-    // to create the 1-arg maxLabelPpa function to get the best label for each example.
-    def maxLabelPpa = maxLabel(classifier.labels) _
-
     // Make predictions on the evaluation data. Because the classifier knows about
     // featurization, we can apply the classifier directly to each example using evalRaw.
     val comparisons = for (ex <- readRaw(evalfile).toList) yield 
-      (ex.label, maxLabelPpa(classifier.evalRaw(ex.features)), ex.features)
+      (ex.label, classifier.predict(ex.features), ex.features)
 
     // Compute and print out the confusion matrix based on the comparisons 
     // obtained above.

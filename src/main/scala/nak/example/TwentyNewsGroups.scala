@@ -61,9 +61,10 @@ object TwentyNewsGroupsExample {
     // Evaluate
     println("Evaluating...")
     val evalDir = new File(newsgroupsDir, "20news-bydate-test")
-    val maxLabelNews = maxLabel(classifier.labels) _
+    //val maxLabelNews = maxLabel(classifier.labels) _
     val comparisons = for (ex <- fromLabeledDirs(evalDir).toList) yield 
-      (ex.label, maxLabelNews(classifier.evalRaw(ex.features)), ex.features)
+      (ex.label, classifier.predict(ex.features), ex.features)
+      //(ex.label, maxLabelNews(classifier.evalRaw(ex.features)), ex.features)
     val (goldLabels, predictions, inputs) = comparisons.unzip3
     println(ConfusionMatrix(goldLabels, predictions, inputs))
   }

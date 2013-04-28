@@ -19,11 +19,12 @@ package nak.example
 
 /**
  * An example of using the API to classify the prepositional phrase attachment
- * data, trying to be as simple and self-contained as possible.
+ * data, trying to be as simple and self-contained as possible. Includes example
+ * of how to serialize (save) and deserialize (load) a classifier.
  *
  * After compiling Nak, you can run it as follows (in the top-level of Nak):
  *
- * $ bin/nak run nak.example.PpaExample data/classify/ppa/training data/classify/ppa/devset 
+ * $ bin/nak run nak.example.PpaExample data/classify/ppa/training data/classify/ppa/devset ppa-classifier.obj 
  * 
  * @author jasonbaldridge
  */
@@ -36,7 +37,7 @@ object PpaExample {
   import nak.util.ConfusionMatrix
 
   def main(args: Array[String]) {
-    val Array(trainfile,evalfile) = args
+    val Array(trainfile, evalfile, fileForSavedClassifier) = args
 
     // A function (with supporting regex) that reads the format of the PPA 
     // files and turns them into Examples. E.g. a line like:
@@ -67,7 +68,12 @@ object PpaExample {
     // Logistic Regression classifier with a C value of .5. We accept the default
     // eps and verbosity values.
     val config = LiblinearConfig(cost=.5)
-    val classifier = trainClassifier(config, featurizer, rawExamples)
+    val trainedClassifier = trainClassifier(config, featurizer, rawExamples)
+
+    // Save the classifier to disk, then load it. Obviously not necessary here, but this
+    // shows how to do it.
+    saveClassifier(trainedClassifier, fileForSavedClassifier)
+    val classifier = loadClassifier[FeaturizedClassifier[String,String]](fileForSavedClassifier)
 
     // Make predictions on the evaluation data. Because the classifier knows about
     // featurization, we can apply the classifier directly to each example using evalRaw.

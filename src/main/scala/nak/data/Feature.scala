@@ -50,7 +50,7 @@ case class FeatureObservation[F](feature: F, magnitude: Double = 1.0) {
  * convert an entire document into the counts of all the words that
  * occur in it (see BowFeaturizer).
  */ 
-trait Featurizer[I,O] extends (I => Seq[FeatureObservation[O]])
+trait Featurizer[I,O] extends (I => Seq[FeatureObservation[O]]) with Serializable
 
 /**
  * A bag-of-words featurizer that simply tokenizes the input String by using
@@ -69,6 +69,6 @@ class BowFeaturizer(stopwords: Set[String] = Set[String]()) extends Featurizer[S
  * A trait for classes that can index features represented as Strings. Non-general
  * at the moment.
  */ 
-trait FeatureMap {
+trait FeatureMap extends Serializable {
   def indexOfFeature(feature: String): Option[Int]
 }

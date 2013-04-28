@@ -24,7 +24,7 @@ import nak.liblinear.LiblinearUtil._
  * Classifiers are given a sequence of feature indices and their magnitudes
  * and return a score for each label.
  */
-trait Classifier extends (Array[(Int,Double)] => Array[Double]) {
+trait Classifier extends (Array[(Int,Double)] => Array[Double]) with Serializable {
 
   /**
    * Evaluate the given indexed feature observations. Calls the apply method,

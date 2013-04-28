@@ -94,6 +94,26 @@ object NakContext {
   ): IndexedClassifier[String] = 
     Classifier(trainModel(config,examples,fmap.size), lmap, fmap)
 
+  /**
+   * Save a classifier to disk by using Java serialization.
+   */ 
+  def saveClassifier(classifier: Classifier, filename: String) {
+    import java.io._
+    val stream = new FileOutputStream(filename)
+    new ObjectOutputStream(stream).writeObject(classifier)
+    stream.close
+  }
+
+  /**
+   * Read a classifier from disk by using Java deserialization.
+   */ 
+  def loadClassifier[C<:Classifier](filename: String) = {
+    import java.io._
+    val stream = new FileInputStream(filename)
+    val classifier = new ObjectInputStream(stream).readObject.asInstanceOf[C]
+    stream.close
+    classifier
+  }
 
   /**
    * Train a Liblinear classifier using examples that have been created from a
@@ -135,7 +155,6 @@ object NakContext {
     val model = new LiblinearTrainer(config)(responses, observations, features.length)
     Classifier.createLegacy(model, labels, features)
   }
-
 
   /**
    * Trains a liblinear model given indexed examples. Note: a model is basically just the

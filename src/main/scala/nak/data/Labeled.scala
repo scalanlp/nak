@@ -29,7 +29,7 @@ trait Labeled[+L] {
 /**
  * A trait for classes that indexes labels and get labels of indexes.
  */
-trait LabelMap[L] {
+trait LabelMap[L] extends Serializable {
   def indexOfLabel(label: L): Int
   def labelOfIndex(index: Int): L
   def labels: Seq[L]

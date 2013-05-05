@@ -114,7 +114,7 @@ object ConfusionMatrix {
 
   import scala.collection.mutable.ListBuffer
 
-  def apply[L,I](goldLabels: Seq[L], predictedLabels: Seq[Option[L]], items: Seq[I])(implicit ord: Ordering[L]) = {
+  def apply[L,I](goldLabels: Seq[L], predictedLabels: Seq[L], items: Seq[I])(implicit ord: Ordering[L]) = {
 
     val labels = (goldLabels.toSet ++ predictedLabels.toSet).toIndexedSeq.sorted
     val labelIndices = labels.zipWithIndex.toMap

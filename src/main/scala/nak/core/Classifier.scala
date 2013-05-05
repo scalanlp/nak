@@ -45,9 +45,12 @@ trait IndexedClassifier[L] extends Classifier with LabelMap[L] with FeatureMap {
   /**
    * Evaluate the un-indexed feature observations. Uses the feature map to
    * index the observations and then pass them on to evalIndexed of Classifier.
-   */ 
-  def evalUnindexed(observations: Seq[FeatureObservation[String]]): Array[Double] =
-    evalIndexed(observations.flatMap(_.mapOption(indexOfFeature)))
+   */
+  def evalUnindexed(observations: Seq[FeatureObservation[String]]): Option[Array[Double]] = {
+    val indexed = observations.flatMap(_.mapOption(indexOfFeature))
+    if (indexed.size == 0) None
+    else Some(evalIndexed(indexed))
+  }
 
 }
 
@@ -61,16 +64,21 @@ trait FeaturizedClassifier[L,I] extends IndexedClassifier[L] {
   /**
    * Evaluate a raw observation by featurizing it and then calling evalUnindexed
    * of IndexedClassifier.
-   */ 
-  def evalRaw(content: I) = evalUnindexed(featurizer(content))
-
+   */
+  def evalRaw(content: I): Option[Array[Double]] = {
+    val features = featurizer(content)
+    evalUnindexed(features)
+  }
 
   /**
    * Evaluate a raw observation by using evalRaw, identify the highest
    * scoring label, and then return it.
-   */ 
-  def predict(content: I) = 
-    labelOfIndex(evalRaw(content).zipWithIndex.maxBy(_._1)._2)
+   */
+  def predict(content: I): Option[L] = {
+    evalRaw(content).map { raw =>
+      labelOfIndex(raw.zipWithIndex.maxBy(_._1)._2)
+    }
+  }
 
 }
 
@@ -135,10 +143,10 @@ trait LinearModelAdaptor extends LiblinearClassifier with nak.core.LinearModel {
            indexed <- fob.mapOption(indexOfFeature)) yield indexed.tuple
     apply(fobservations)
   }
-  
-  def eval(context: Array[String]) = 
-    evalUnindexed(context.map(FeatureObservation(_)))
-    
+
+  def eval(context: Array[String]) =
+    evalUnindexed(context.map(FeatureObservation(_))).getOrElse(null)
+
   def getOutcome(i: Int) = labelOfIndex(i)
   def getIndex(outcome: String) = indexOfLabel(outcome)
   lazy val getNumOutcomes = numLabels

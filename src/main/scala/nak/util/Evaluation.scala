@@ -109,18 +109,19 @@ object ConfusionMatrix {
 
   import scala.collection.mutable.ListBuffer
 
-  def apply(goldLabels: Seq[String], predictedLabels: Seq[String], items: Seq[String]) = {
+  def apply(goldLabels: Seq[String], predictedLabels: Seq[Option[String]], items: Seq[String]) = {
 
-    val labels = (goldLabels.toSet ++ predictedLabels.toSet).toIndexedSeq.sorted
+    val labels = (goldLabels.toSet ++ predictedLabels.flatten.toSet).toIndexedSeq.sorted
     val labelIndices = labels.zipWithIndex.toMap
     val numLabels = labels.length
     val counts = Array.fill(numLabels, numLabels)(0)
     val examples = Array.fill(numLabels, numLabels)(new ListBuffer[String])
 
     goldLabels.zip(predictedLabels).zip(items).foreach {
-      case ((goldLabel, predLabel), item) =>
+      case ((goldLabel, Some(predLabel)), item) =>
         counts(labelIndices(goldLabel))(labelIndices(predLabel)) += 1
         examples(labelIndices(goldLabel))(labelIndices(predLabel)) += item
+      case _ => ;
     }
 
     new ConfusionMatrix(

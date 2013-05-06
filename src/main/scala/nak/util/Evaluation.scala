@@ -145,13 +145,10 @@ object CrossValidation {
     val tests = for {
       fold <- 0 until nbrFold
     } yield {
-      println(s"fold ${fold}, from ${fold * size} to ${(fold + 1) * size}")
       val test = xs.slice(fold * size, (fold + 1) * size)
       val train = xs.slice(0, fold * size) ++ xs.slice((fold + 1) * size, xs.size)
-      println(s"training with ${train.size}")
 
       val classifier = f(train)
-      println(s"testing with ${test.size}")
 
       (for {
         t <- test

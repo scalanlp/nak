@@ -142,21 +142,16 @@ object ConfusionMatrix {
 }
 
 object CrossValidation {
-  
-  //TODO once merged, make this generic
 
   def crossValidation[L,I](xs: Traversable[Example[L, I]], nbrFold: Int)(f: Traversable[Example[L, I]] => IndexedClassifier[L] with FeaturizedClassifier[L, I])(implicit ord: Ordering[L]): ConfusionMatrix[L,I] = {
     val size = (xs.size / nbrFold).ceil.toInt
     val tests = for {
       fold <- 0 until nbrFold
     } yield {
-      println(s"fold ${fold}, from ${fold * size} to ${(fold + 1) * size}")
       val test = xs.slice(fold * size, (fold + 1) * size)
       val train = xs.slice(0, fold * size) ++ xs.slice((fold + 1) * size, xs.size)
-      println(s"training with ${train.size}")
 
       val classifier = f(train)
-      println(s"testing with ${test.size}")
 
       (for {
         t <- test

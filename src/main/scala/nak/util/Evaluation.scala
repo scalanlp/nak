@@ -1,5 +1,9 @@
 package nak.util
 
+import nak.data.Example
+import nak.core.FeaturizedClassifier
+import nak.core.IndexedClassifier
+
 case class Scores(accuracy: Double, precisionAverage: Double, recallAverage: Double, fscoreAverage: Double, all: Seq[Seq[Double]] )
 
 /**
@@ -114,7 +118,7 @@ object ConfusionMatrix {
 
   import scala.collection.mutable.ListBuffer
 
-  def apply[L,I](goldLabels: Seq[L], predictedLabels: Seq[Option[L]], items: Seq[I])(implicit ord: Ordering[L]) = {
+  def apply[L,I](goldLabels: Seq[L], predictedLabels: Seq[L], items: Seq[I])(implicit ord: Ordering[L]) = {
 
     val labels = (goldLabels.toSet ++ predictedLabels.toSet).toIndexedSeq.sorted
     val labelIndices = labels.zipWithIndex.toMap
@@ -141,7 +145,7 @@ object CrossValidation {
   
   //TODO once merged, make this generic
 
-  def crossValidation(xs: Traversable[Example[String, String]], nbrFold: Int)(f: Traversable[Example[String, String]] => IndexedClassifier[String] with FeaturizedClassifier[String, String]): ConfusionMatrix = {
+  def crossValidation[L,I](xs: Traversable[Example[L, I]], nbrFold: Int)(f: Traversable[Example[L, I]] => IndexedClassifier[L] with FeaturizedClassifier[L, I])(implicit ord: Ordering[L]): ConfusionMatrix[L,I] = {
     val size = (xs.size / nbrFold).ceil.toInt
     val tests = for {
       fold <- 0 until nbrFold
@@ -162,7 +166,7 @@ object CrossValidation {
     ConfusionMatrix(testZ._1, testZ._2, testZ._3)
   }
 
-  def leaveOneOut(xs: Traversable[Example[String, String]])(f: Traversable[Example[String, String]] => IndexedClassifier[String] with FeaturizedClassifier[String, String]): ConfusionMatrix = {
+  def leaveOneOut[L,I](xs: Traversable[Example[L, I]])(f: Traversable[Example[L, I]] => IndexedClassifier[L] with FeaturizedClassifier[L, I])(implicit ord: Ordering[L]): ConfusionMatrix[L,I] = {
     crossValidation(xs, xs.size)(f)
   }
 

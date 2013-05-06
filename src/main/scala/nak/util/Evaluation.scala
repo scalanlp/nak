@@ -1,5 +1,9 @@
 package nak.util
 
+import nak.data.Example
+import nak.core.FeaturizedClassifier
+import nak.core.IndexedClassifier
+
 /**
  * A confusion matrix for comparing gold clusters to some predicted clusters.
  *
@@ -7,7 +11,7 @@ package nak.util
  * @param counts the matrix, where each cell is the number of data points that had a given gold label and predicted label
  */
 class ConfusionMatrix(
-  labels: Seq[String], 
+  labels: Seq[String],
   counts: Seq[Seq[Int]],
   examples: Seq[Seq[Seq[String]]]) {
 
@@ -52,28 +56,28 @@ class ConfusionMatrix(
       + prfs.zip(labels).map {
         case (prf, label) => prf.map(formatPercent).mkString("\t") + "\t" + label
       }.mkString("\n")
-      + "\n" + "."*35 + "\n"
-      + formatPercent(precisionAverage) + "\t" 
-      + formatPercent(recallAverage) + "\t" 
+      + "\n" + "." * 35 + "\n"
+      + formatPercent(precisionAverage) + "\t"
+      + formatPercent(recallAverage) + "\t"
       + formatPercent(fscoreAverage) + "\tAverage")
   }
 
   lazy val detailedOutput = {
-    val sep = "-"*80 + "\n"
-    val correct = 
-      for (i <- 0 until numLabels) yield
-	"Correctly labeled: " + labels(i) + "\n" + sep + examples(i)(i).mkString("\n\n")
+    val sep = "-" * 80 + "\n"
+    val correct =
+      for (i <- 0 until numLabels) yield "Correctly labeled: " + labels(i) + "\n" + sep + examples(i)(i).mkString("\n\n")
 
-    val incorrect = 
-      for (i <- 0 until numLabels;
-	   j <- 0 until numLabels;
-	   if i != j) 
-      yield {
-	("Incorrectly labeled: " + labels(i) + " mistaken as " + labels(j) +  "\n" + sep
-	 + examples(i)(j).mkString("\n\n"))
+    val incorrect =
+      for (
+        i <- 0 until numLabels;
+        j <- 0 until numLabels;
+        if i != j
+      ) yield {
+        ("Incorrectly labeled: " + labels(i) + " mistaken as " + labels(j) + "\n" + sep
+          + examples(i)(j).mkString("\n\n"))
       }
     (sep + "CORRECTLY LABELED EXAMPLES\n" + sep + correct.mkString("\n\n\n")
-     + "\n\n\n" + sep + "INCORRECTLY LABELED EXAMPLES\n" + sep + incorrect.mkString("\n\n\n"))
+      + "\n\n\n" + sep + "INCORRECTLY LABELED EXAMPLES\n" + sep + incorrect.mkString("\n\n\n"))
   }
 
   // Create a string representation. Be lazy so that we only do it once.
@@ -124,10 +128,41 @@ object ConfusionMatrix {
     }
 
     new ConfusionMatrix(
-      labels, 
-      counts.map(_.toIndexedSeq).toIndexedSeq, 
+      labels,
+      counts.map(_.toIndexedSeq).toIndexedSeq,
       examples.map(_.toIndexedSeq).toIndexedSeq)
 
+  }
+
+}
+
+object CrossValidation {
+  
+  //TODO once merged, make this generic
+
+  def crossValidation(xs: Traversable[Example[String, String]], nbrFold: Int)(f: Traversable[Example[String, String]] => IndexedClassifier[String] with FeaturizedClassifier[String, String]): ConfusionMatrix = {
+    val size = (xs.size / nbrFold).ceil.toInt
+    val tests = for {
+      fold <- 0 until nbrFold
+    } yield {
+      println(s"fold ${fold}, from ${fold * size} to ${(fold + 1) * size}")
+      val test = xs.slice(fold * size, (fold + 1) * size)
+      val train = xs.slice(0, fold * size) ++ xs.slice((fold + 1) * size, xs.size)
+      println(s"training with ${train.size}")
+
+      val classifier = f(train)
+      println(s"testing with ${test.size}")
+
+      (for {
+        t <- test
+      } yield (t.label, classifier.predict(t.features), t.features))
+    }
+    val testZ = tests.flatten.unzip3
+    ConfusionMatrix(testZ._1, testZ._2, testZ._3)
+  }
+
+  def leaveOneOut(xs: Traversable[Example[String, String]])(f: Traversable[Example[String, String]] => IndexedClassifier[String] with FeaturizedClassifier[String, String]): ConfusionMatrix = {
+    crossValidation(xs, xs.size)(f)
   }
 
 }

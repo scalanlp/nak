@@ -137,9 +137,16 @@ object ConfusionMatrix {
 }
 
 object CrossValidation {
-  
+
   //TODO once merged, make this generic
 
+  /**
+   * Runs a N-Fold cross-validation and returns a ConfusionMatrix with all the results (i.e. you get an average result over all folds). XS, the set of examples is split in `nbrFold` subsets. We then run `nbrFold` evaluation, where we test on the i-th subset and train on all the other one. For instance if we have `xs = Seq(1,2,3,4)` with `nbrFold=4`, we will run 4 evaluations:
+   * - test= Seq(1), train = Seq(2,3,4)
+   * - test= Seq(2), train = Seq(1,3,4)
+   * - test= Seq(3), train = Seq(1,2,4)
+   * - test= Seq(4), train = Seq(1,2,3)
+   */
   def crossValidation(xs: Traversable[Example[String, String]], nbrFold: Int)(f: Traversable[Example[String, String]] => IndexedClassifier[String] with FeaturizedClassifier[String, String]): ConfusionMatrix = {
     val size = (xs.size / nbrFold).ceil.toInt
     val tests = for {
@@ -158,6 +165,10 @@ object CrossValidation {
     ConfusionMatrix(testZ._1, testZ._2, testZ._3)
   }
 
+  /**
+   * Runs a leave one out evaluation. This is equivalent to a n-fold cross-validation where the number of fold is equal to the number of examples. That is, we take one example out, we train on all other examples and test on the example that we reserved, this is repeated for each example.
+   * While this is useful for cases where there aren't many examples, it might be quite slow for large datasets and a n-fold with a smaller number of splits might yield a good evaluation anyway.
+   */
   def leaveOneOut(xs: Traversable[Example[String, String]])(f: Traversable[Example[String, String]] => IndexedClassifier[String] with FeaturizedClassifier[String, String]): ConfusionMatrix = {
     crossValidation(xs, xs.size)(f)
   }

@@ -10,10 +10,10 @@ import nak.core.IndexedClassifier
  * @param goldLabels	the set of labels
  * @param counts the matrix, where each cell is the number of data points that had a given gold label and predicted label
  */
-class ConfusionMatrix(
-  labels: Seq[String],
+class ConfusionMatrix[L, I](
+  labels: Seq[L],
   counts: Seq[Seq[Int]],
-  examples: Seq[Seq[Seq[String]]]) {
+  examples: Seq[Seq[Seq[I]]]) {
 
   lazy val numLabels = labels.length
 
@@ -113,13 +113,13 @@ object ConfusionMatrix {
 
   import scala.collection.mutable.ListBuffer
 
-  def apply(goldLabels: Seq[String], predictedLabels: Seq[String], items: Seq[String]) = {
+  def apply[L,I](goldLabels: Seq[L], predictedLabels: Seq[Option[L]], items: Seq[I])(implicit ord: Ordering[L]) = {
 
     val labels = (goldLabels.toSet ++ predictedLabels.toSet).toIndexedSeq.sorted
     val labelIndices = labels.zipWithIndex.toMap
     val numLabels = labels.length
     val counts = Array.fill(numLabels, numLabels)(0)
-    val examples = Array.fill(numLabels, numLabels)(new ListBuffer[String])
+    val examples = Array.fill(numLabels, numLabels)(new ListBuffer[I])
 
     goldLabels.zip(predictedLabels).zip(items).foreach {
       case ((goldLabel, predLabel), item) =>

@@ -1,8 +1,6 @@
 package nak.util
 
-import nak.data.Example
-import nak.core.FeaturizedClassifier
-import nak.core.IndexedClassifier
+case class Scores(accuracy: Double, precisionAverage: Double, recallAverage: Double, fscoreAverage: Double, all: Seq[Seq[Double]] )
 
 /**
  * A confusion matrix for comparing gold clusters to some predicted clusters.
@@ -24,8 +22,8 @@ class ConfusionMatrix[L, I](
 
   def formatPercent(percent: Double) = "%1.2f".format(100 * percent)
 
-  // Calculate accuracy, precision, recall, and F-score
-  lazy val measurements = {
+  lazy val scores = {
+    // Calculate accuracy, precision, recall, and F-score
     val goodCounts = counts.indices.map(index => counts(index)(index))
     val totalCounts = counts.map(_.sum).sum.toDouble
     val accuracy = goodCounts.sum / totalCounts
@@ -49,17 +47,20 @@ class ConfusionMatrix[L, I](
     val precisionAverage = precisionValues.sum / numLabels
     val recallAverage = recallValues.sum / numLabels
     val fscoreAverage = fscores.sum / numLabels
+    Scores(accuracy, precisionAverage, recallAverage, fscoreAverage, prfs)
+  }
 
+  lazy val measurements = {
     (lineSeparator
-      + "\t" * 2 + formatPercent(accuracy) + "\tOverall accuracy\n"
+      + "\t" * 2 + formatPercent(scores.accuracy) + "\tOverall accuracy\n"
       + lineSeparator + "P\tR\tF\n"
-      + prfs.zip(labels).map {
+      + scores.all.zip(labels).map {
         case (prf, label) => prf.map(formatPercent).mkString("\t") + "\t" + label
       }.mkString("\n")
       + "\n" + "." * 35 + "\n"
-      + formatPercent(precisionAverage) + "\t"
-      + formatPercent(recallAverage) + "\t"
-      + formatPercent(fscoreAverage) + "\tAverage")
+      + formatPercent(scores.precisionAverage) + "\t"
+      + formatPercent(scores.recallAverage) + "\t"
+      + formatPercent(scores.fscoreAverage) + "\tAverage")
   }
 
   lazy val detailedOutput = {

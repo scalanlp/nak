@@ -83,7 +83,8 @@ class ConfusionMatrix(
 
   // Create a string representation. Be lazy so that we only do it once.
   lazy val stringRep = {
-    val lengthOfRow = counts(0).mkString.length + counts(0).length * 7
+    val lengthOfRow = if (counts.length > 0) counts(0).mkString.length + counts(0).length * 7
+    else 0
 
     val tableString =
       counts.zip(labels)
@@ -99,7 +100,7 @@ class ConfusionMatrix(
       tableString + "\n" +
       "-" * lengthOfRow + "\n" +
       counts.transpose.map(_.sum).mkString("\t") + "\n" +
-      labels.mkString(" ") + "\n"
+      labels.mkString("\t") + "\n"
       + "\n" + measurements)
   }
 

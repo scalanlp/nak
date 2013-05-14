@@ -15,7 +15,6 @@
 */
 package nak.cluster
 
-import pca_transform.PCA
 import Jama.Matrix
 
 /**
@@ -64,6 +63,11 @@ case class Point(val coord: IndexedSeq[Double]) {
 
   // A terse String representation for the coordinates of this Point.
   override def toString = "[" + coord.mkString(",") + "]"
+}
+
+object Point {
+  // convert a seq of points into an array matrix 
+  implicit def points2matrix(points: IndexedSeq[Point]) : Array[Array[Double]] = points.map(_.coord.toArray).toArray
 }
 
 /* -------------------- Distance Functions -------------------- */
@@ -227,9 +231,8 @@ object ZscoreTransformer {
  *                      explain, so the most important dimensions are kept.
  */
 class PcaTransformer(
-  pca: PCA,
-  scaler: ZscoreTransformer,
-  numComponents: Int) extends PointTransformer {
+  features: Matrix,
+  scaler: ZscoreTransformer) extends PointTransformer {
 
   /**
    * Transform a sequence of point to their z-score values, thereby scaling
@@ -238,27 +241,23 @@ class PcaTransformer(
    */
   def apply(points: IndexedSeq[Point]): IndexedSeq[Point] = {
     val scaledPoints = scaler(points)
-    val pointMatrix = new Matrix(scaledPoints.map(_.coord.toArray).toArray)
-    val transformed = pca.transform(pointMatrix, PCA.TransformationType.ROTATION)
+    val pointMatrix = new Matrix(scaledPoints)
+    val transformed = pointMatrix.times(features)
     transformed.getArray.map { transformedCoord =>
-      Point(transformedCoord.take(numComponents).toIndexedSeq)
+      Point(transformedCoord.toIndexedSeq)
     }
   }
 
   def inverseTransform(points:IndexedSeq[Point]) : IndexedSeq[Point] = {    
-     val evectorMatrix = pca.getEigenvectorsMatrix();    
-     val inverseTransformMatrix = evectorMatrix.getMatrix(0,evectorMatrix.getRowDimension-1,0,numComponents-1).transpose()    
-     val pointMatrix = new Matrix(points.map(_.coord.toArray).toArray)   
-     val transformedPoints = pointMatrix.times(inverseTransformMatrix)   
+     val pointMatrix = new Matrix(points)
+     val transformedPoints = pointMatrix.times(features.transpose)   
      val ztransformedPoints = transformedPoints.getArray.map { transformedCoord =>   
-       Point(transformedCoord.take(numComponents).toIndexedSeq)    
+       Point(transformedCoord.toIndexedSeq)    
      }   
      scaler.inverseTransform(ztransformedPoints)   
   }
-
-
-
 }
+
 /**
  * Companion object that constructs a ZscoreTransformer from the given points,
  * and then computes the principal components from the scaled points. It
@@ -277,23 +276,37 @@ object PcaTransformer {
    *         PCA object computed from the scaled points and the 95% cutoff
    *         value.
    */
-  def apply(points: IndexedSeq[Point]) = {
+  def apply(points: IndexedSeq[Point], threshold: Double = 0.95) = {
 
     // First scale the points.
     val scaler = ZscoreTransformer(points)
     val scaledPoints = scaler(points)
-
+    
     // Compute the PCA from the scaled points.
-    val pca = new PCA(new Matrix(scaledPoints.map(_.coord.toArray).toArray))
-
-    // Figure out how many components are needed to explain 95% of the variance.
-    val eigVals = (0 until pca.getOutputDimsNo).map(pca.getEigenvalue(_))
-    val eigValsSq = eigVals.map(x => x * x)
-    val propVariance = eigValsSq.map(_ / eigValsSq.sum)
-    val numComponents = propVariance.scan(0.0)(_ + _).indexWhere(.95<)
-
+    val f = features(scaledPoints, threshold)
+    
     // Create the PCA Transformer
-    new PcaTransformer(pca, scaler, numComponents)
+    new PcaTransformer(f, scaler)
   }
+  
+  /**
+   * Feature Matrix
+   */
+  def features(points: IndexedSeq[Point], threshold: Double): Matrix = {
+    
+    //Singular Value Decomposition
+    val pointMatrix = new Matrix(points)
+    val svd = pointMatrix.svd() 
+    
+    // Figure out how many components are needed to explain the variance.
+    val eigValsSq = svd.getSingularValues().map(math.pow(_, 4))
+    val propVariance = eigValsSq.map(_ / eigValsSq.sum)
+    val numComponents = propVariance.scanLeft(0.0)(_ + _).indexWhere(threshold<)
+    
+    val v = svd.getV()
+    //return selected components
+    v.getMatrix(0, v.getRowDimension-1, 0, numComponents-1)
+  }
+
 }
 

@@ -103,3 +103,29 @@ extends (Example[String,Seq[FeatureObservation[String]]]
   def getMaps = (lmap.toMap, fmap.toMap)
 
 }
+
+/**
+ * Indexes the labels and features of a series of examples. Can be made much
+ * more general, but just doing what is needed for the time being.
+ */
+class HashedExampleIndexer(requestedHighestFeatureIndex: Int) 
+extends (Example[String,Seq[FeatureObservation[String]]]
+         => Example[Int,Seq[FeatureObservation[Int]]]) {
+
+  import nak.NakContext._
+  import nak.util.GrowableIndex
+
+  private[this] val lmap = new GrowableIndex[String]()
+  private[this] val fmap = HashedFeatureMap(requestedHighestFeatureIndex)
+
+  val highestFeatureIndex = fmap.maxNumberOfFeatures
+
+  def apply(ex: Example[String,Seq[FeatureObservation[String]]]) =
+    ex.relabel(lmap)
+      .map(_.map(feature => feature.map(f=>fmap.indexOfFeature(f).get)))
+      .map(condense)
+
+  def getMaps = (lmap.toMap, fmap)
+
+}
+

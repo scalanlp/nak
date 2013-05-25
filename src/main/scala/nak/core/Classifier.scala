@@ -83,7 +83,7 @@ trait FeaturizedClassifier[L,I] extends IndexedClassifier[L] {
 trait LiblinearClassifier extends IndexedClassifier[String] {
   val model: LiblinearModel 
   val lmap: Map[String, Int] 
-  val fmap: Map[String, Int]
+  def fmap: FeatureMap
 
   import nak.liblinear.{Linear, FeatureNode, Feature => LiblinearFeature}
 
@@ -98,7 +98,7 @@ trait LiblinearClassifier extends IndexedClassifier[String] {
   def labelOfIndex(index: Int) = labels(index)
 
   /** Get the index of a feature. */ 
-  def indexOfFeature(feature: String) = fmap.get(feature)
+  def indexOfFeature(feature: String) = fmap.indexOfFeature(feature)
 
   /**
    * Declare the model type. Used for legacy model saving; will be phased out soon.
@@ -172,7 +172,7 @@ object Classifier {
     new LiblinearClassifier {
       val model = _model
       val lmap = _lmap
-      val fmap = _fmap
+      val fmap = new ExactFeatureMap(_fmap)
     }
 
   /**
@@ -183,6 +183,22 @@ object Classifier {
   def apply[I](_model: LiblinearModel, 
                _lmap: Map[String,Int],
                _fmap: Map[String,Int],
+               _featurizer: Featurizer[I,String]) =
+    new LiblinearClassifier with FeaturizedClassifier[String,I] {
+      val model = _model
+      val lmap = _lmap
+      val fmap = new ExactFeatureMap(_fmap)
+      val featurizer = _featurizer
+    }
+
+  /**
+   * Create an classifier that is indexed and contains a featurizer, given a model,
+   * a featurizer, and maps giving the indices of the labels and features (where the
+   * index of feature in the array is the index of the parameter in the model).
+   */ 
+  def apply[I](_model: LiblinearModel, 
+               _lmap: Map[String,Int],
+               _fmap: HashedFeatureMap,
                _featurizer: Featurizer[I,String]) =
     new LiblinearClassifier with FeaturizedClassifier[String,I] {
       val model = _model
@@ -202,7 +218,7 @@ object Classifier {
     new LinearModelAdaptor { 
       val model = _model
       val lmap = _labels.zipWithIndex.toMap
-      val fmap = _features.zipWithIndex.toMap
+      val fmap = new ExactFeatureMap(_features.zipWithIndex.toMap)
     }
 
 }

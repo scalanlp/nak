@@ -69,7 +69,7 @@ object PpaExample {
     // eps and verbosity values.
     val config = LiblinearConfig(cost=.5)
     val trainedClassifier = trainClassifier(config, featurizer, rawExamples)
-
+    
     // Save the classifier to disk, then load it. Obviously not necessary here, but this
     // shows how to do it.
     saveClassifier(trainedClassifier, fileForSavedClassifier)

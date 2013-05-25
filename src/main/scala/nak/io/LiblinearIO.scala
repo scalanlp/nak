@@ -19,7 +19,13 @@ extends nak.io.AbstractModelWriter {
   def persist {
     val classifier = linearModel.asInstanceOf[LiblinearClassifier]
     val model = classifier.model
-    val features = classifier.fmap.toSeq.sortBy(_._2).unzip._1
+
+    // This is a hack to keep things simple until Nak dumps the old OpenNLP Maxent 
+    // stuff. Basically, assume we have an ExactFeatureMap, and pull the Map out
+    // of it and write that to disk.
+    val fmap = classifier.fmap.asInstanceOf[ExactFeatureMap].fmap
+    val features = fmap.toSeq.sortBy(_._2).unzip._1
+
     val parameters = model.getFeatureWeights
     assert(features.length == parameters.length)
 

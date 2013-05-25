@@ -74,11 +74,39 @@ object NakContext {
 
     // Featurize and index the examples.
     val indexer = new ExampleIndexer    
-    val examples = rawExamples.map(_.map(featurizer)).map(indexer)
+    val examples = rawExamples.par.map(_.map(featurizer)).map(indexer).seq
     val (lmap,fmap) = indexer.getMaps
         
     // Train the model, and then return the classifier.
     val model = trainModel(config, examples, fmap.size)
+    Classifier(model, lmap, fmap, featurizer)
+  }
+
+  /**
+   * Trains a classifier given examples and featurizer. Uses the hashing trick
+   * for indexing features, and creates a classifier that can be applied directly
+   * to new raw observations.
+   *
+   * This is the easiest way to build and use a classifier that uses the hashing
+   * trick. For more details on the hashing trick, see:
+   *   http://hunch.net/~jl/projects/hash_reps/index.html
+   */
+  def trainClassifierHashed[I](
+    config: LiblinearConfig, 
+    featurizer: Featurizer[I,String],
+    rawExamples: Seq[Example[String, I]],
+    maxNumberOfFeatures: Int = 10000
+  ): IndexedClassifier[String] with FeaturizedClassifier[String, I] = {
+  
+    // Featurize and index the examples.
+    val indexer = new HashedExampleIndexer(maxNumberOfFeatures)
+    val primeNumberOfFeatures = indexer.highestFeatureIndex
+    val examples = rawExamples.par.map(_.map(featurizer)).map(indexer).seq
+    val (lmap,fmap) = indexer.getMaps
+
+    // Train the model, and then return the classifier.
+    println("Estimating model parameters...")
+    val model = trainModel(config, examples, primeNumberOfFeatures+1)
     Classifier(model, lmap, fmap, featurizer)
   }
 

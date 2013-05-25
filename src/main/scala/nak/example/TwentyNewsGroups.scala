@@ -50,14 +50,20 @@ object TwentyNewsGroupsExample {
     val stopwords = Set("the","a","an","of","in","for","by","on")
 
     // Train
-    print("Training... ")
+    print("Training... ")    
     val trainDir = new File(newsgroupsDir, "20news-bydate-train")
     val trainingExamples = fromLabeledDirs(trainDir).toList
-    val config = LiblinearConfig(cost=5.0)
+    //val config = LiblinearConfig(cost=5.0)
+    val config = LiblinearConfig(cost=5.0,eps=0.01)
     val featurizer = new BowFeaturizer(stopwords)
     val classifier = trainClassifier(config, featurizer, trainingExamples)
-    println("done.")
 
+    // Comment out the above line and uncomment the following if you want to try 
+    // the hashing trick.
+    //val classifier = trainClassifierHashed(config, featurizer, trainingExamples, 50000)
+
+    println("done.")
+    
     // Evaluate
     println("Evaluating...")
     val evalDir = new File(newsgroupsDir, "20news-bydate-test")

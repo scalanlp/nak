@@ -101,11 +101,6 @@ trait LiblinearClassifier extends IndexedClassifier[String] {
   def indexOfFeature(feature: String) = fmap.indexOfFeature(feature)
 
   /**
-   * Declare the model type. Used for legacy model saving; will be phased out soon.
-   */ 
-  val getModelType = nak.core.AbstractModel.ModelType.Liblinear
-
-  /**
    * Implement the apply method of Classifier by transforming the tuples into
    * Liblinear Features and then calling Linear.predictProbability.
    *
@@ -120,32 +115,6 @@ trait LiblinearClassifier extends IndexedClassifier[String] {
   }
 
 }
-
-/**
- * An adaptor that makes the new Nak API classifiers conform to the legacy
- * LinearModel that came from OpenNLP.
- */
-@deprecated(message="Allows liblinear classifiers to implement the legacy API, but this be phased out soon.",since="1.1.2")
-trait LinearModelAdaptor extends LiblinearClassifier with nak.core.LinearModel {
-
-  def eval(context: Array[String], values: Array[Float]): Array[Double] = {
-    val fobservations = 
-      for ((f,m) <- context.zip(values);
-           fob = FeatureObservation(f,m.toDouble);
-           indexed <- fob.mapOption(indexOfFeature)) yield indexed.tuple
-    apply(fobservations)
-  }
-  
-  def eval(context: Array[String]) = 
-    evalUnindexed(context.map(FeatureObservation(_)))
-    
-  def getOutcome(i: Int) = labelOfIndex(i)
-  def getIndex(outcome: String) = indexOfLabel(outcome)
-  lazy val getNumOutcomes = numLabels
-
-}
-
-
 
 /**
  * Companion object to help with constructing Classifiers.
@@ -206,70 +175,4 @@ object Classifier {
       val fmap = _fmap
       val featurizer = _featurizer
     }
-
-  /**
-   * Create an LinearModelAdaptor given a model and arrays for labels and
-   * features (where the index of feature in the array is the index of the
-   * parameter in the model). (LinearModelAdaptor implements the LinearModel
-   * interface from the legacy OpenNLP API.)
-   */ 
-  @deprecated(message="Use new API classifiers instead.", since="1.1.2")
-  def createLegacy(_model: LiblinearModel, _labels: Array[String], _features: Array[String]) =
-    new LinearModelAdaptor { 
-      val model = _model
-      val lmap = _labels.zipWithIndex.toMap
-      val fmap = new ExactFeatureMap(_features.zipWithIndex.toMap)
-    }
-
-}
-
-object ClassifierUtil {
-
-  import java.text.DecimalFormat
-
-  /**
-   * Return the name of the outcome corresponding to the highest likelihood
-   * in the parameter ocs.
-   *
-   * @param ocs A double[] as returned by the eval(String[] context)
-   *            method.
-   * @return    The name of the most likely outcome.
-   */
-  @deprecated(message="Use Classifier rather than LinearModel.", since="1.1.2")
-  def getBestOutcome(model: LinearModel, ocs: Array[Double]) = {
-    var best = 0
-    for (i <- 1 until ocs.length)
-      if (ocs(i) > ocs(best)) best = i
-    model.getOutcome(best)
-  }
-
-
-  /**
-   * Return a string matching all the outcome names with all the
-   * probabilities produced by the <code>eval(String[] context)</code>
-   * method.
-   *
-   * @param ocs A <code>double[]</code> as returned by the
-   *            <code>eval(String[] context)</code>
-   *            method.
-   * @return    String containing outcome names paired with the normalized
-   *            probability (contained in the <code>double[] ocs</code>)
-   *            for each one.
-   */
-  @deprecated(message="Use Classifier rather than LinearModel.", since="1.1.2")
-  def getAllOutcomes(model: LinearModel, ocs: Array[Double]) = {
-      if (ocs.length != model.getNumOutcomes) {
-          "The double array sent as a parameter to GISModel.getAllOutcomes() must not have been produced by this model."
-      } else {
-        val df =  new DecimalFormat("0.0000")
-        val sb = new StringBuilder(ocs.length * 2)
-        sb.append(model.getOutcome(0)).append("[").append(df.format(ocs(0))).append("]")
-        for (i <- 1 until ocs.length)
-          sb.append("  ")
-            .append(model.getOutcome(i))
-            .append("[").append(df.format(ocs(i))).append("]")
-        sb.toString
-      }
-  }
-
 }

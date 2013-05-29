@@ -63,7 +63,7 @@ object PpaExample {
 
     // Get the training examples in their raw format.  
     val rawExamples = readRaw(trainfile).toList
-
+    
     // Configure and train with liblinear. Here we use the (default) L2-Regularized 
     // Logistic Regression classifier with a C value of .5. We accept the default
     // eps and verbosity values.

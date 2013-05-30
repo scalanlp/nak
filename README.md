@@ -1,6 +1,6 @@
 # Nak
 
-Nak is a Scala/Java library for machine learning and related tasks, with a focus on having an easy to use API for some standard algorithms. It is formed from [Breeze](https://github.com/scalanlp/breeze), [Liblinear Java](http://liblinear.bwaldvogel.de/), [the OpenNLP Maxent package](http://opennlp.apache.org/) and [Scalabha](https://github.com/utcompling/Scalabha). It is currently undergoing a pretty massive evolution, so be prepared for quite big changes in the API for this and probably several future versions. 
+Nak is a Scala/Java library for machine learning and related tasks, with a focus on having an easy to use API for some standard algorithms. It is formed from [Breeze](https://github.com/scalanlp/breeze), [Liblinear Java](http://liblinear.bwaldvogel.de/), and [Scalabha](https://github.com/utcompling/Scalabha). It is currently undergoing a pretty massive evolution, so be prepared for quite big changes in the API for this and probably several future versions. 
 
 We'd love to have some more contributors: if you are interested in helping out, please see [the #helpwanted issues](https://github.com/scalanlp/nak/issues/search?q=%23helpwanted) or suggest your own ideas.
 
@@ -10,34 +10,27 @@ Nak currently provides implementations for k-means clustering and supervised lea
 
 See [the Nak wiki](https://github.com/scalanlp/nak/wiki) for (some preliminary) documentation.
 
-The latest stable release of Nak is 1.1.2. Changes from the previous release include:
+The latest stable release of Nak is 1.1.3. Changes from the previous release include:
 
-* Incorporated breeze.data classes into nak.data and updated liblinear training and model use to work with these rather than the legacy opennlp classes.
-* Added nak.data.Featurizer and nak.core.FeaturizedClassifier, which handle turning raw data into collections of features. When combined with IndexedClassifier, the indexation of these features is handled automatically so that a user of the API doesn't need to ever worry about the low level and can focus on the data and feature extraction. 
-* Added NakContext object (inspired by SparkContext), which provides a number of utility methods for getting classifiers up and running.
-* Added nak.example package, with example implementations for prepositional phrase attachment (PpaExample) and text classification (TwentyNewsGroupsExample).
-* Added nak.util.ConfusionMatrix class, which provides detailed error output.
-* Added ScalaTest and started writing BDD tests.
-* Refactored a lot of code to get rid of duplication.
-* Added code documentation to many classes and functions.
-
+* Enabled the hashing trick to be used for linear models. See nak.data.HashedExampleIndex and nak.data.HashedFeatureMap.
+* PCA now supported directly in Nak for dimensionality reduction w/ kmeans.
+* All OpenNLP Maxent code purged from Nak.
 See the [CHANGELOG](https://github.com/scalanlp/nak/wiki/CHANGELOG) for changes in previous versions.
 
 ## Using Nak
 
 In SBT:
 
-    libraryDependencies += "org.scalanlp" % "nak" % "1.1.2"
+    libraryDependencies += "org.scalanlp" % "nak" % "1.1.3"
 
 In Maven:
 
     <dependency>
        <groupId>org.scalanlp</groupId>
        <artifactId>nak</artifactId>
-       <version>1.1.2</version>
+       <version>1.1.3</version>
     </dependency>
 
-**Note**: There is one dependency that won't get pulled along: pca_transform-0.7.2.jar in the lib directory is not available on any repository, so you'll need to add that to your classpath by hand if (and only if) you want to be able to use PCA transformations for input to k-means.
 
 ## Example
 

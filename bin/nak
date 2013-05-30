@@ -19,7 +19,7 @@ SCALA_LIB="$HOME/.sbt/boot/scala-2.10.1/lib/scala-library.jar"
 CP="$NAK_DIR/target/classes:$SCALA_LIB:$NAK_DIR/src/main/resources:$MANAGED_JARS"
 
 JAVA="$JAVA_HOME/bin/java"
-JAVA_COMMAND="$JAVA -classpath $CP -Dnak.dir=$NAK_DIR"
+JAVA_COMMAND="$JAVA $JAVA_MEM_FLAG -classpath $CP -Dnak.dir=$NAK_DIR"
 
 CMD=$1
 shift

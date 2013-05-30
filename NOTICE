@@ -1,16 +1,7 @@
 The Nak Machine Learning Library
-Copyright 2013 Jason Baldridge
-
-Apache OpenNLP
-Copyright 2010, 2011, 2012 The Apache Software Foundation
-
-This product includes software developed at
-The Apache Software Foundation (http://www.apache.org/).
+Copyright 2013 ScalaNLP
 
 ---
-The PCA Transform Library is licensed under the MIT license. 
- - https://github.com/mkobos/pca_transform
-
 The JAMA Library is in the public domain.
  - http://math.nist.gov/javanumerics/jama/#license
 

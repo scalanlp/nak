@@ -15,6 +15,7 @@ The latest stable release of Nak is 1.1.3. Changes from the previous release inc
 * Enabled the hashing trick to be used for linear models. See nak.data.HashedExampleIndex and nak.data.HashedFeatureMap.
 * PCA now supported directly in Nak for dimensionality reduction w/ kmeans.
 * All OpenNLP Maxent code purged from Nak.
+
 See the [CHANGELOG](https://github.com/scalanlp/nak/wiki/CHANGELOG) for changes in previous versions.
 
 ## Using Nak

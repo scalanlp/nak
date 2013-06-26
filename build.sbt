@@ -10,10 +10,17 @@ retrieveManaged := true
 
 crossPaths := false
 
+resolvers ++= Seq(
+  "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
+)
+
+
 libraryDependencies ++= Seq(
   "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test",
   "com.novocode" % "junit-interface" % "0.8" % "test->default",
   "org.rogach" %% "scallop" % "0.8.1",
+  "org.scalanlp" % "breeze-core_2.10" % "0.4-SNAPSHOT",
+  "org.scalanlp" % "breeze-math_2.10" % "0.4-SNAPSHOT",
   "commons-logging" % "commons-logging" % "1.1.1",
   "log4j" % "log4j" % "1.2.16",
   "gov.nist.math" % "jama" % "1.0.2"

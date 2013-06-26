@@ -63,11 +63,14 @@ object Example {
   /**
    * Create a new Example.
    */
-  def apply[L,T](_label: L, _features: T, _id:String=""): Example[L,T] = {
+  def apply[L,T](label: L, features: T, id:String=""): Example[L,T] = {
+    val l = label
+    val f = features
+    val i = id
     new Example[L,T] {
-      val id = _id
-      val label = _label
-      val features = _features
+      val id = i
+      val label = l
+      val features = f
     }
   }
 

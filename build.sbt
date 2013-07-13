@@ -4,7 +4,7 @@ version := "1.2.0-SNAPSHOT"
 
 organization := "org.scalanlp"
 
-scalaVersion := "2.10.1"
+scalaVersion := "2.10.2"
 
 retrieveManaged := true
 
@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test",
   "com.novocode" % "junit-interface" % "0.8" % "test->default",
   "org.scalacheck" %% "scalacheck" % "1.10.0" % "test",
-  "org.rogach" %% "scallop" % "0.8.1",
+  "org.rogach" %% "scallop" % "0.9.3",
   "org.scalanlp" % "breeze-core_2.10" % "0.4-SNAPSHOT",
   "org.scalanlp" % "breeze-math_2.10" % "0.4-SNAPSHOT",
   "commons-logging" % "commons-logging" % "1.1.1",

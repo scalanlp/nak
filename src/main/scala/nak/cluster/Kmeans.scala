@@ -39,7 +39,6 @@ import nak.util.CollectionUtil._
   *    stop when change from one iteration to the next is less than this value.
   * @param maxIterations the maximum number of iterations to run k-means for
   *
-  * @author jasonbaldridge
  */
 class Kmeans[T](
   points: IndexedSeq[T],
@@ -110,14 +109,15 @@ class Kmeans[T](
   }
 
   /**
-   *  Given a sequence of centroids, compute the cluster memberships for each point.
-   *
-   *  @param centroids A set of points representing centroids.
-   *  @return A pair, the first element of which is the dispersion given these centroids, and the second of which is the list of centroid indices for each of the points being clustered (based on the nearest centroid to each).
-   */
+    *  Given a sequence of centroids, compute the cluster memberships for each point.
+    *
+    *  @param centroids A set of points representing centroids.
+    *  @return A pair, the first element of which is the dispersion given these centroids,
+    *       and the second of which is the list of centroid indices for each of the points
+    *       being clustered (based on the nearest centroid to each).
+    */
   def computeClusterMemberships(centroids: IndexedSeq[T]) = {
     val (squaredDistances, memberships) = points.map { point =>
-      //val distances = centroids.map(distance(_, point))
       val distances = centroids.map(c=>norm(c-point))
       val shortestDistance = distances.min
       val closestCentroid = distances.indexWhere(shortestDistance==)
@@ -133,7 +133,6 @@ class Kmeans[T](
     memberships.zip(points)
       .groupByKey
       .mapValues(group => group.foldLeft(zeros(group.head))(_+=_) / group.size.toDouble)
-      //.mapValues(group => group.reduce(_ ++ _) / group.length.toDouble)
       .toVector
       .sortBy(_._1)
       .map(_._2)

@@ -35,7 +35,7 @@ class KMeansTest extends FunSuite {
 
     val kmeans = new Kmeans[DenseVector[Double]](points)
     val (dispersion, centroids) = kmeans.run(3,25)
-    
+       
     assert(closeTo(dispersion,6.0))
     val IndexedSeq(a, b, c) = centroids.sortWith{ (a,b) =>
       if(a(0) < b(0)) true else if(a(0) > b(0)) false else a(1) < b(1)
@@ -62,8 +62,6 @@ class KMeansTest extends FunSuite {
 
     val kmeans = new Kmeans[SparseVector[Double]](points)
     val (dispersion, centroids) = kmeans.run(3,25)
-    println("** " + dispersion)
-    centroids.foreach(println)
     
     assert(closeTo(dispersion,175.05))
     val IndexedSeq(a, b, c) = centroids.sortWith{ (a,b) =>

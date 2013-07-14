@@ -1,7 +1,7 @@
 package nak.data
 
 /*
- Copyright 2013 Jason Baldridge
+ Copyright 2013 ScalaNLP
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ package nak.data
  * A feature with its observed magnitude in some context. The default is
  * 1.0, which encodes the usual binary presence/absence distinction for
  * features.
- *
- * @author jasonbaldridge
  */
 case class FeatureObservation[F](feature: F, magnitude: Double = 1.0) {
 

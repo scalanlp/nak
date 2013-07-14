@@ -48,10 +48,13 @@ object NakContext {
    * Convert examples that are stored as files in directories, where each directory name acts
    * as the label for all the files it contains. (E.g. the 20 News Groups data.)
    */ 
-  def fromLabeledDirs(topdir: File)(implicit codec: scala.io.Codec): Iterator[Example[String,String]] = {
-    for (dir <- topdir.listFiles.toIterator.filter(_.isDirectory);
-         label = dir.getName;
-         file <- dir.listFiles.toIterator) yield {
+  def fromLabeledDirs(topdir: File)
+    (implicit codec: scala.io.Codec): Iterator[Example[String,String]] = {
+    for {
+      dir <- topdir.listFiles.toIterator.filter(_.isDirectory);
+      label = dir.getName;
+      file <- dir.listFiles.toIterator
+    } yield {
       val fileSource = Source.fromFile(file);
       val text = fileSource.mkString;
       fileSource.close

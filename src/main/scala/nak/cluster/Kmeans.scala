@@ -67,75 +67,77 @@ class Kmeans[T](
     *     centroids.
     */
   def run(k: Int, restarts: Int = 25): (Double, IndexedSeq[T]) = {
-    val runResults = (1 to restarts).map { _ =>
-      moveCentroids(chooseRandomCentroids(k))
-    }
-
+    val start = System.currentTimeMillis
+    val runResults = (1 to restarts).map(_ => moveCentroids(chooseRandomCentroids(k)))
+    val end = System.currentTimeMillis
     val (bestDispersion, bestCentroids) = runResults.minBy(_._1)
-
     LOG.debug("Dispersion: " + bestDispersion)
     LOG.debug("Centroids: \n" + bestCentroids.mkString("\n"))
-
+    println("Time: " + (end-start)/1000.0)
     (bestDispersion, bestCentroids)
   }
 
   /**
-    * Run the k-means algorithm starting from the given set of centroids.
+    * Run the k-means algorithm starting from the given set of centroids. This
+    * is an iterative version since it runs faster than a nicer recursive one.
     *
     * @return A pair, the first element of which is the dispersion for the
     *     best set of centroids found, and the second element of which is that
     *     set of centroids.
     */
-  def moveCentroids(centroids: IndexedSeq[T]): (Double, IndexedSeq[T]) = {
-
-    // Inner recursive function for computing next centroids
-    def inner(centroids: IndexedSeq[T],
-      lastDispersion: Double,
-      iteration: Int): (Double, IndexedSeq[T]) = {
-
+  private[this] def moveCentroids(centroids: IndexedSeq[T]): (Double, IndexedSeq[T]) = {
+    val numClusters = centroids.length
+    var iteration = 0
+    var lastDispersion = Double.PositiveInfinity
+    var dispersionChange = Double.PositiveInfinity
+    var changingCentroids = centroids
+    while (iteration < maxIterations && dispersionChange > minChangeInDispersion) {
       LOG.debug("Iteration " + iteration)
-
-      val (dispersion, memberships) = computeClusterMemberships(centroids)
-      val updatedCentroids = computeCentroids(memberships)
-      val dispersionChange = lastDispersion - dispersion
-
-      if (iteration > maxIterations || dispersionChange < minChangeInDispersion)
-        (lastDispersion, centroids)
-      else
-        inner(updatedCentroids, dispersion, iteration + 1)
+      println("Iteration " + iteration)
+      val (dispersion, memberships) = computeClusterMemberships(changingCentroids)
+      changingCentroids = computeCentroids(memberships,numClusters)
+      dispersionChange = lastDispersion - dispersion
+      lastDispersion = dispersion
+      iteration += 1
     }
-
-    inner(centroids, Double.PositiveInfinity, 1)
+    (lastDispersion, changingCentroids)
   }
 
   /**
     *  Given a sequence of centroids, compute the cluster memberships for each point.
     *
-    *  @param centroids A set of points representing centroids.
+    *  @param centroids A sequence of points representing centroids.
     *  @return A pair, the first element of which is the dispersion given these centroids,
     *       and the second of which is the list of centroid indices for each of the points
     *       being clustered (based on the nearest centroid to each).
     */
   def computeClusterMemberships(centroids: IndexedSeq[T]) = {
-    val (squaredDistances, memberships) = points.map { point =>
+    val (squaredDistances, memberships) = points.par.map { point =>
       val distances = centroids.map(c=>norm(c-point))
       val shortestDistance = distances.min
       val closestCentroid = distances.indexWhere(shortestDistance==)
       (shortestDistance * shortestDistance, closestCentroid)
-    }.unzip
+    }.toIndexedSeq.unzip
     (squaredDistances.sum, memberships)
   }
   
   /**
     *  Given memberships for each point, compute the centroid for each cluster.
     */
-  private[this] def computeCentroids(memberships: IndexedSeq[Int]) = {
-    memberships.zip(points)
-      .groupByKey
-      .mapValues(group => group.foldLeft(zeros(group.head))(_+=_) / group.size.toDouble)
-      .toVector
-      .sortBy(_._1)
-      .map(_._2)
+  private[this] def computeCentroids(memberships: IndexedSeq[Int], numClusters: Int) = {
+    val centroids = IndexedSeq.fill(numClusters)(zeros(points.head))
+    val counts = Array.fill(numClusters)(0)
+    var index = 0
+    while (index < points.length) {
+      val clusterId = memberships(index)
+      centroids(clusterId) += points(index)
+      counts(clusterId) += 1
+      index += 1
+    }
+    (for ((centroid, count) <- centroids.zip(counts).par) yield {
+      centroid / count.toDouble
+    }).toIndexedSeq
+
   }
 
   /**

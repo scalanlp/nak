@@ -1,5 +1,3 @@
-package nak.data
-
 /*
  Copyright 2013 ScalaNLP
  
@@ -15,6 +13,7 @@ package nak.data
  See the License for the specific language governing permissions and
  limitations under the License. 
 */
+package nak.data
 
 /**
  * A feature with its observed magnitude in some context. The default is
@@ -62,6 +61,58 @@ class BowFeaturizer(stopwords: Set[String] = Set[String]()) extends Featurizer[S
     .filterNot(stopwords)
     .map(tok => FeatureObservation("word="+tok))
 }
+
+/**
+  * A function that converts a batch of objects of some input class into a
+  * sequence of FeatureObservations for an output class O. Done for Examples,
+  * so also must include the label type L.
+  */
+trait BatchFeaturizer[L,I,O]
+    extends (Seq[Example[L,I]] => Seq[Example[L,Seq[FeatureObservation[O]]]])
+    with Serializable
+
+/**
+  * A BatchFeaturizer that computes the tf-idf score of the terms in each
+  * Example. Also performs basic feature selection by pruning words/features
+  * that don't pass a given count.
+  */
+class TfidfBatchFeaturizer(minimumUnigramCount: Int = 2) 
+    extends BatchFeaturizer[String,String,String] {
+
+  import nak.util.CollectionUtil._
+  import nak.util.CleanStringTokenizer
+
+  def apply(examples: Seq[Example[String,String]]) = {
+    val numDocuments = examples.length
+    val documents = examples.map { ex =>
+      ex.map(features=>CleanStringTokenizer(features.toLowerCase).counts)
+    }
+    val unigramFrequencies = collection.mutable.HashMap[String,Int]().withDefaultValue(0)
+    val documentFrequencies = collection.mutable.HashMap[String,Int]().withDefaultValue(0)
+
+    for (doc <- documents; (word,count) <- doc.features) {
+      unigramFrequencies(word) += count
+      documentFrequencies(word) += 1
+    }
+
+    val selectedWords = documentFrequencies.filter { wf =>
+      wf._2 > 1 && unigramFrequencies(wf._1) >= minimumUnigramCount
+    }
+
+    val idfs = selectedWords.mapValues { docFreq =>
+      math.log(.001+numDocuments/docFreq.toDouble)
+    }
+
+    for (doc <- documents) yield {
+      doc.map { features =>
+        (for ((word,termFrequency) <- features;  idf <- idfs.get(word)) yield
+          FeatureObservation(word, termFrequency/idf)
+        ).toSeq
+      }
+    }
+  }
+}
+
 
 /**
  * A trait for classes that can index features represented as Strings. Non-general

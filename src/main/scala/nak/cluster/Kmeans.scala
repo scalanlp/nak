@@ -42,6 +42,7 @@ import nak.util.CollectionUtil._
  */
 class Kmeans[T](
   points: IndexedSeq[T],
+  distanceFun: (T,T)=>Double = Kmeans.euclideanDistance,
   minChangeInDispersion: Double = 0.0001,
   maxIterations: Int = 100,
   fixedSeedForRandom: Boolean = false
@@ -67,13 +68,9 @@ class Kmeans[T](
     *     centroids.
     */
   def run(k: Int, restarts: Int = 25): (Double, IndexedSeq[T]) = {
-    val start = System.currentTimeMillis
     val runResults = (1 to restarts).map(_ => moveCentroids(chooseRandomCentroids(k)))
-    val end = System.currentTimeMillis
     val (bestDispersion, bestCentroids) = runResults.minBy(_._1)
     LOG.debug("Dispersion: " + bestDispersion)
-    LOG.debug("Centroids: \n" + bestCentroids.mkString("\n"))
-    println("Time: " + (end-start)/1000.0)
     (bestDispersion, bestCentroids)
   }
 
@@ -92,12 +89,11 @@ class Kmeans[T](
     var dispersionChange = Double.PositiveInfinity
     var changingCentroids = centroids
     while (iteration < maxIterations && dispersionChange > minChangeInDispersion) {
-      LOG.debug("Iteration " + iteration)
-      println("Iteration " + iteration)
       val (dispersion, memberships) = computeClusterMemberships(changingCentroids)
       changingCentroids = computeCentroids(memberships,numClusters)
-      dispersionChange = lastDispersion - dispersion
+      dispersionChange = math.abs(lastDispersion - dispersion)
       lastDispersion = dispersion
+      LOG.debug("Iteration " + iteration + " " + lastDispersion)
       iteration += 1
     }
     (lastDispersion, changingCentroids)
@@ -113,16 +109,16 @@ class Kmeans[T](
     */
   def computeClusterMemberships(centroids: IndexedSeq[T]) = {
     val (squaredDistances, memberships) = points.par.map { point =>
-      val distances = centroids.map(c=>norm(c-point))
+      val distances = centroids.map(c=>distanceFun(c,point))
       val shortestDistance = distances.min
       val closestCentroid = distances.indexWhere(shortestDistance==)
       (shortestDistance * shortestDistance, closestCentroid)
     }.toIndexedSeq.unzip
     (squaredDistances.sum, memberships)
   }
-  
+
   /**
-    *  Given memberships for each point, compute the centroid for each cluster.
+    * Given memberships for each point, compute the centroid for each cluster.
     */
   private[this] def computeCentroids(memberships: IndexedSeq[Int], numClusters: Int) = {
     val centroids = IndexedSeq.fill(numClusters)(zeros(points.head))
@@ -145,5 +141,35 @@ class Kmeans[T](
     */
   private[this] def chooseRandomCentroids(k: Int) =
     random.shuffle(points).take(k)
+
+}
+
+/**
+  * A companion to hold distance functions.
+  */
+object Kmeans {
+
+  import breeze.linalg._
+
+  /**
+    * Compute cosine distance: 1-cosine(a,b)
+    */ 
+  val cosineDistance = (a: Vector[Double], b: Vector[Double]) => {
+    1 - (a dot b)/(norm(a)*norm(b))
+  }
+  
+  /**
+    * Compute Manhattan distance (l1 norm).
+    */ 
+  val manhattanDistance = (a: Vector[Double], b: Vector[Double]) => {
+    (a-b).norm(1)
+  }
+
+  /**
+    * Compute euclidean distance (l2 norm).
+    */ 
+  val euclideanDistance = (a: Vector[Double], b: Vector[Double]) => {
+    norm(a-b)
+  }
 
 }

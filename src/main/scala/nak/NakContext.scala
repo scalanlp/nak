@@ -55,8 +55,8 @@ object NakContext {
       label = dir.getName;
       file <- dir.listFiles.toIterator
     } yield {
-      val fileSource = Source.fromFile(file);
-      val text = fileSource.mkString;
+      val fileSource = Source.fromFile(file)
+      val text = fileSource.mkString
       fileSource.close
       Example(label, text, file.getName)
     }

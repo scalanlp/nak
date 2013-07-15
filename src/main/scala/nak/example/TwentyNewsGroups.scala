@@ -78,7 +78,7 @@ object TwentyNewsGroupsExample {
   * Example command line to get 10 clusters using euclidean distance and
   * requiring each word/feature to have been seen 20 times or more.
   * 
-  * $ nak run nak.example.TwentyNewsGroupsKmeansExample -k 10 -d e -c 20 20news/
+  * $ nak run nak.example.TwentyNewsGroupsKmeansExample -k 20 -d e -c 20 20news/20news-bydate-train
   */
 object TwentyNewsGroupsKmeansExample {
 
@@ -93,16 +93,15 @@ object TwentyNewsGroupsKmeansExample {
 
   def main(args: Array[String]) {
     val opts = ClusteringOpts(args)
-    val newsgroupsDir = opts.dirname()
 
     // We need this codec for reading in the 20 news groups files.
     implicit val isoCodec = scala.io.Codec("ISO-8859-1")
 
     println("Processing files... ")
-    val trainDir = new File(newsgroupsDir, "20news-bydate-train")
+    val trainDir = new File(opts.dirname())
     val trainingExamples = fromLabeledDirs(trainDir).toList
     val indexer = new ExampleIndexer(false)
-    val batchFeaturizer = new TfidfBatchFeaturizer(opts.cutoff())
+    val batchFeaturizer = new TfidfBatchFeaturizer[String](opts.cutoff())
     val examples = batchFeaturizer(trainingExamples).map(indexer)
     val (lmap,fmap) = indexer.getMaps
     val numFeatures = fmap.size

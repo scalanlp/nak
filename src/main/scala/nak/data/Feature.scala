@@ -76,13 +76,13 @@ trait BatchFeaturizer[L,I,O]
   * Example. Also performs basic feature selection by pruning words/features
   * that don't pass a given count.
   */
-class TfidfBatchFeaturizer(minimumUnigramCount: Int = 2) 
-    extends BatchFeaturizer[String,String,String] {
+class TfidfBatchFeaturizer[L](minimumUnigramCount: Int = 2) 
+    extends BatchFeaturizer[L,String,String] {
 
   import nak.util.CollectionUtil._
   import nak.util.CleanStringTokenizer
 
-  def apply(examples: Seq[Example[String,String]]) = {
+  def apply(examples: Seq[Example[L,String]]) = {
     val numDocuments = examples.length
     val documents = examples.map { ex =>
       ex.map(features=>CleanStringTokenizer(features.toLowerCase).counts)

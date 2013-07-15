@@ -22,8 +22,8 @@ libraryDependencies ++= Seq(
   "org.rogach" %% "scallop" % "0.9.3",
   "org.scalanlp" % "breeze-core_2.10" % "0.4-SNAPSHOT",
   "org.scalanlp" % "breeze-math_2.10" % "0.4-SNAPSHOT",
-  "commons-logging" % "commons-logging" % "1.1.1",
-  "log4j" % "log4j" % "1.2.16"
+  "com.typesafe" %% "scalalogging-log4j" % "1.0.1",
+  "org.apache.logging.log4j" % "log4j-core" % "2.0-beta3"
 )
 
 publishTo <<= version { v: String =>

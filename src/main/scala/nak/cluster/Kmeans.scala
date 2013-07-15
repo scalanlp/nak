@@ -15,9 +15,6 @@
 */
 package nak.cluster
 
-import org.apache.commons.logging.LogFactory
-import org.apache.log4j.Logger
-import org.apache.log4j.Level
 import breeze.math.{MutableInnerProductSpace, MutableNormedSpace}
 import breeze.numerics._
 import breeze.linalg._
@@ -25,6 +22,7 @@ import breeze.util._
 import breeze.util.Implicits._
 import collection.mutable.ArrayBuffer
 import breeze.stats.distributions.Multinomial
+import com.typesafe.scalalogging.log4j.Logging
 
 import nak.util.CollectionUtil._
 
@@ -46,11 +44,9 @@ class Kmeans[T](
   minChangeInDispersion: Double = 0.0001,
   maxIterations: Int = 100,
   fixedSeedForRandom: Boolean = false
-)(implicit space: MutableInnerProductSpace[T, Double]) {
+)(implicit space: MutableInnerProductSpace[T, Double]) extends Logging {
   import space._
   
-  private val LOG = LogFactory.getLog(Kmeans.getClass)
-
   // Seed with 13 if consistency across runs is required.
   private[this] val random = 
     if (fixedSeedForRandom) new util.Random(13)
@@ -70,7 +66,7 @@ class Kmeans[T](
   def run(k: Int, restarts: Int = 25): (Double, IndexedSeq[T]) = {
     val runResults = (1 to restarts).map(_ => moveCentroids(chooseRandomCentroids(k)))
     val (bestDispersion, bestCentroids) = runResults.minBy(_._1)
-    LOG.debug("Dispersion: " + bestDispersion)
+    logger.debug("Dispersion: " + bestDispersion)
     (bestDispersion, bestCentroids)
   }
 
@@ -93,7 +89,7 @@ class Kmeans[T](
       changingCentroids = computeCentroids(memberships,numClusters)
       dispersionChange = math.abs(lastDispersion - dispersion)
       lastDispersion = dispersion
-      LOG.debug("Iteration " + iteration + " " + lastDispersion)
+      logger.debug("Iteration " + iteration + " " + lastDispersion)
       iteration += 1
     }
     (lastDispersion, changingCentroids)

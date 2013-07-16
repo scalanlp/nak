@@ -76,8 +76,11 @@ trait BatchFeaturizer[L,I,O]
   * Example. Also performs basic feature selection by pruning words/features
   * that don't pass a given count.
   */
-class TfidfBatchFeaturizer[L](minimumUnigramCount: Int = 2) 
-    extends BatchFeaturizer[L,String,String] {
+class TfidfBatchFeaturizer[L](
+  minimumUnigramCount: Int = 2,
+  stopwords: Set[String] = Set[String](),
+  addDefault: Boolean = false
+) extends BatchFeaturizer[L,String,String] {
 
   import nak.util.CollectionUtil._
   import nak.util.CleanStringTokenizer
@@ -85,8 +88,11 @@ class TfidfBatchFeaturizer[L](minimumUnigramCount: Int = 2)
   def apply(examples: Seq[Example[L,String]]) = {
     val numDocuments = examples.length
     val documents = examples.map { ex =>
-      ex.map(features=>CleanStringTokenizer(features.toLowerCase).counts)
+      ex.map { features=>
+        CleanStringTokenizer(features.toLowerCase).filterNot(stopwords).counts
+      }
     }
+
     val unigramFrequencies = collection.mutable.HashMap[String,Int]().withDefaultValue(0)
     val documentFrequencies = collection.mutable.HashMap[String,Int]().withDefaultValue(0)
 
@@ -105,9 +111,10 @@ class TfidfBatchFeaturizer[L](minimumUnigramCount: Int = 2)
 
     for (doc <- documents) yield {
       doc.map { features =>
-        (for ((word,termFrequency) <- features;  idf <- idfs.get(word)) yield
+        val obs = (for ((word,termFrequency) <- features;  idf <- idfs.get(word)) yield
           FeatureObservation(word, termFrequency/idf)
         ).toSeq
+        if (addDefault) obs ++ Seq(FeatureObservation("DEFAULT",1.0)) else obs
       }
     }
   }

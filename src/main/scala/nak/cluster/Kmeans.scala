@@ -84,12 +84,13 @@ class Kmeans[T](
     var lastDispersion = Double.PositiveInfinity
     var dispersionChange = Double.PositiveInfinity
     var changingCentroids = centroids
+    logger.debug("Starting k-means")
     while (iteration < maxIterations && dispersionChange > minChangeInDispersion) {
       val (dispersion, memberships) = computeClusterMemberships(changingCentroids)
       changingCentroids = computeCentroids(memberships,numClusters)
       dispersionChange = math.abs(lastDispersion - dispersion)
       lastDispersion = dispersion
-      logger.debug("Iteration " + iteration + " " + lastDispersion)
+      logger.debug(s"Iteration  $iteration $lastDispersion $dispersionChange")
       iteration += 1
     }
     (lastDispersion, changingCentroids)
@@ -108,6 +109,7 @@ class Kmeans[T](
       val distances = centroids.map(c=>distanceFun(c,point))
       val shortestDistance = distances.min
       val closestCentroid = distances.indexWhere(shortestDistance==)
+      assert(closestCentroid > -1)
       (shortestDistance * shortestDistance, closestCentroid)
     }.toIndexedSeq.unzip
     (squaredDistances.sum, memberships)
@@ -122,8 +124,10 @@ class Kmeans[T](
     var index = 0
     while (index < points.length) {
       val clusterId = memberships(index)
-      centroids(clusterId) += points(index)
-      counts(clusterId) += 1
+      if (clusterId > -1) {
+        centroids(clusterId) += points(index)
+        counts(clusterId) += 1
+      }
       index += 1
     }
     (for ((centroid, count) <- centroids.zip(counts).par) yield {

@@ -21,7 +21,7 @@ object CleanStringTokenizer {
   import java.util.StringTokenizer
 
   def apply (raw: String, doLowerCase: Boolean = true) =
-    StringCleaner(raw).split("\\s+").toIndexedSeq
+    StringCleaner(raw, doLowerCase).split("\\s+").toIndexedSeq
 
 }
 

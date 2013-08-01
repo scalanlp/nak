@@ -107,9 +107,7 @@ class Kmeans[T](
   def computeClusterMemberships(centroids: IndexedSeq[T]) = {
     val (squaredDistances, memberships) = points.par.map { point =>
       val distances = centroids.map(c=>distanceFun(c,point))
-      val shortestDistance = distances.min
-      val closestCentroid = distances.indexWhere(shortestDistance==)
-      assert(closestCentroid > -1)
+      val (shortestDistance, closestCentroid) = distances.zipWithIndex.min
       (shortestDistance * shortestDistance, closestCentroid)
     }.toIndexedSeq.unzip
     (squaredDistances.sum, memberships)

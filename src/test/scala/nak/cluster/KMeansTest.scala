@@ -39,7 +39,7 @@ class KMeansTest extends FunSuite {
     val IndexedSeq(a, b, c) = centroids.sortWith{ (a,b) =>
       if(a(0) < b(0)) true else if(a(0) > b(0)) false else a(1) < b(1)
     }
-    
+
     assert((DenseVector(0.5, 0.5)) === a)
     assert((DenseVector(0.5, 8.5)) === b)
     assert((DenseVector(8.5, 8.5)) === c)

@@ -1,4 +1,4 @@
-package nak.dimreduction
+package nak.util
 
 /**
   * A Locality Sensitive Hash that hashes the documents into buckets.
@@ -15,7 +15,7 @@ package nak.dimreduction
   * The parameters numberBands, threshold may be may be set so that
   * threshold is approximately equal to  (1/numberBands)^(1/rows per band).
  **/
-class LSH(
+class LocalitySensitiveHash(
   shingleLength: Int = 3,
   minHashLength: Int = 100,
   numberBands: Int=10,

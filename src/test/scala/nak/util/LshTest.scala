@@ -18,12 +18,7 @@ class LocalitySensitiveHashSpec extends FunSpec {
       
       // Hash all all documents read from file
       val lsh = new LocalitySensitiveHash(
-        lines,
-        shingleLength=3,
-        minHashLength=100,
-        numberBands=10,
-        threshold = 0.3
-      )
+        lines, shingleLength=3, numRows=100, numBands=10)
       
       // find the documents that are most similar to the below string
       val testString = "RT @Adam_Schefter:QB Tebow broke the combined record for QBs with a 38-inch vertical jump. He also ran an impressive 40 time "

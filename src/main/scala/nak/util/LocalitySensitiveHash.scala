@@ -16,7 +16,7 @@ package nak.util
   * threshold is approximately equal to  (1/numberBands)^(1/rows per band).
  **/
 class LocalitySensitiveHash(
-  processedDocuments: IndexedSeq[(String, Int)],
+  processedDocuments: IndexedSeq[String],
   shingleLength: Int = 3,
   minHashLength: Int = 100,
   numberBands: Int=10,
@@ -26,26 +26,25 @@ class LocalitySensitiveHash(
   val randomHashFunctions =
     HashFunction.randomLinearHashFunctions(minHashLength)
 
-  val documentShingles: Map[Int, Set[String]] =
-    //(for ((text, index) <- processedDocuments) yield {
-    processedDocuments.par.map { case(text, index) =>
-        (index, text.sliding(shingleLength).toSet)
-    }.seq.toMap
+  val documentShingles: IndexedSeq[Set[String]] =
+    processedDocuments.par
+      .map(text => text.sliding(shingleLength).toSet)
+      .toIndexedSeq
 
   val shingleVocab =
-    documentShingles.values.flatten.toSet.toIndexedSeq.zipWithIndex.toMap
+    documentShingles.flatten.toSet.toIndexedSeq.zipWithIndex.toMap
   
   /**
     * Create a locality sensitive hash for the all the processed documents.
     **/
   val mBands: IndexedSeq[Band] = {
-    val minHashCollection = documentShingles.mapValues(getMinHash)
+    val minHashCollection = documentShingles.map(getMinHash)
     val elementsPerBand = (minHashLength.toDouble / numberBands).ceil.toInt
     val bands = (0 until numberBands).par.map { bandIndex =>
       val start = bandIndex * elementsPerBand
       val end = start + elementsPerBand
-      val subArray = minHashCollection.map { document =>
-        (document._1, document._2.slice(start, end))
+      val subArray = minHashCollection.zipWithIndex.map {
+        case (docHash, docIndex) => (docIndex, docHash.slice(start, end))
       }
       val band = new Band()
       subArray.foreach(band.hash)
@@ -73,10 +72,11 @@ class LocalitySensitiveHash(
     **/
   def findSimilar(document: String) = {
     val shingles = StringCleaner.onlyAlpha(document).sliding(shingleLength).toSet
-    findCandidates(shingles).par.filter { candidate =>
+    val similarItems = findCandidates(shingles).par.filter { candidate =>
       val js = JaccardSimilarity(shingles, documentShingles(candidate.toInt))
       js > threshold
     }
+    similarItems.seq.toSet
   }
 
   /**
@@ -177,7 +177,7 @@ object Example {
     val lines = io.Source.fromFile(args(0)).getLines
       .map(StringCleaner.onlyAlpha)
       .toIndexedSeq
-      .zipWithIndex
+      //.zipWithIndex
 
     // Hash all all documents read from file
     val lsh = new LocalitySensitiveHash(

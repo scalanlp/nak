@@ -22,6 +22,7 @@ class LocalitySensitiveHash(
   numBands: Int=20) {
 
   import Similarity.jaccard
+  import scala.util.hashing.MurmurHash3.stringHash
   
   private[this] val rowsPerBand =
     (numRows.toDouble / numBands).ceil.toInt
@@ -41,7 +42,6 @@ class LocalitySensitiveHash(
 
   private[this] val shingleVocab = documentShingles.flatten.toSet
 
-  import scala.util.hashing.MurmurHash3.stringHash
   private[this] def getShingleIndex: (String => Int) = { shingle =>
     math.abs(stringHash(shingle)) % Int.MaxValue
   }
@@ -58,18 +58,6 @@ class LocalitySensitiveHash(
     } yield Band(subArraysForBand)
 
     bands.toIndexedSeq
-  }
-  
-  def getCandidates(shingles: Set[String]) = {
-    val bandsForCandidate =
-      getSignature(shingles).grouped(rowsPerBand).toList
-
-    val candidateLists = for {
-      (subArray, index) <- bandsForCandidate.zipWithIndex.par
-      bucket <- mBands(index).get(subArray)
-    } yield bucket
-
-    candidateLists.flatten.toSet
   }
 
   /**
@@ -88,7 +76,27 @@ class LocalitySensitiveHash(
     similarItems.seq.toSet
   }
 
-  def getSignature(shingles: Set[String]) = {
+
+  /**
+    * Return the indices of candidates that collide in some band
+    * with the given set of shingles.
+    */
+  def getCandidates(shingles: Set[String]) = {
+    val bandsForCandidate =
+      getSignature(shingles).grouped(rowsPerBand).toList
+
+    val candidateLists = for {
+      (subArray, index) <- bandsForCandidate.zipWithIndex.par
+      bucket <- mBands(index).get(subArray)
+    } yield bucket
+
+    candidateLists.flatten.toSet
+  }
+
+  /**
+    * Get the hash signature for a shingle set.
+    */
+  private[this] def getSignature(shingles: Set[String]) = {
     val minHash = Array.fill[Double](numRows)(Double.PositiveInfinity)
     shingles.filter(shingleVocab).map(getShingleIndex).foreach {
       shingleIndex =>
@@ -113,8 +121,13 @@ class LinearHashFunction(slope: Int, const: Int) {
   def apply(x: Double) = slope*x + const
 }
 
+
+/**
+  * Helper object for hash function functions.
+  */ 
 object HashFunction {
 
+  /** Get a sequence of random hash functions of the form mx+b. **/
   def randomLinearHashFunctions(n: Int) = {
     val functions = (0 until n).par.map { _=>
       val slope = util.Random.nextInt(1000)

@@ -164,20 +164,3 @@ object Similarity {
   def jaccard(set1: Set[String], set2: Set[String]): Double =
     (set1 & set2).size.toDouble/(set1 | set2).size
 }
-
-object Example {
-  def main(args:Array[String]) {
-    val lines = io.Source.fromFile(args(0)).getLines.toIndexedSeq
-
-    // Hash all all documents read from file
-    val lsh = new LocalitySensitiveHash(lines, shingleLength=4)
-
-    // find the documents that are most similar to the below string
-    val testString = "RT @Adam_Schefter: QB Tebow broke the combined record for QBs with a 38-inch vertical jump. He also ran an impressive 40 time"
-
-    val similarEntries = lsh.findSimilar(testString)
-    for (index <- similarEntries)
-      println(lines(index))
-  }
-
-}

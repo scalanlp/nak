@@ -21,8 +21,9 @@ class LocalitySensitiveHash(
   numberBands: Int=10,
   processedDocuments: IndexedSeq[(String, Int)],
   threshold: Double=0.8) {
-
-  val randomHashFunctions = randomLinearHashFunction(minHashLength)
+  
+  val randomHashFunctions =
+    HashFunction.randomLinearHashFunctions(minHashLength)
 
   val documentShingles: Map[Int, Set[String]] =
     processedDocuments.map { document =>
@@ -36,18 +37,12 @@ class LocalitySensitiveHash(
 
   var mBands: IndexedSeq[Band] = null
 
-  private def randomLinearHashFunction(n: Int) = {
-    val slope = scala.util.Random.shuffle(0 to 1000)
-    val const = scala.util.Random.shuffle(0 to 1000)
-    slope.zip(const).take(minHashLength)
-  }
-
   def findCandidates(shingles: Set[String]) = {
     val minHash = getMinHash(shingles)
 
     val subArrays = partitionArray(minHash).zipWithIndex
 
-    val candidates = subArrays.flatMap { subArray =>
+    val candidates = subArrays.par.flatMap { subArray =>
       val index = subArray._2
       val hashedBucket = mBands(index).getCollisionObjects(subArray._1)
       hashedBucket
@@ -63,12 +58,8 @@ class LocalitySensitiveHash(
     * @param : document . The document for which similar documents have to be identified
     **/
   def findSimilar(document: String) = {
-    val shingles = document.toList.sliding(shingleLength)
-      .map(_.mkString)
-      .map(shingle => shingle.toLowerCase)
-      .toSet
-
-    findCandidates(shingles).filter { candidate =>
+    val shingles = document.toLowerCase.sliding(shingleLength).toSet
+    findCandidates(shingles).par.filter { candidate =>
       val js = JaccardSimilarity(shingles, documentShingles(candidate.toInt))
       js > threshold
     }
@@ -83,20 +74,23 @@ class LocalitySensitiveHash(
 
     val minHash = Array.fill[Double](minHashLength)(Double.PositiveInfinity)
 
-    shingles.filter(x => shingleVocab.contains(x)).foreach { shingle =>
-      val shingleIndex = shingleVocab(shingle)
+    for {
+      shingle <- shingles
+      if shingleVocab.contains(shingle)
+      shingleIndex = shingleVocab(shingle)
+    } {
+
       var hashIndex = 0
-      randomHashFunctions.foreach { function =>
-        val permutedIndex =
-          (function._1 * shingleIndex + function._2) % shingleVocab.size
-        
+      while (hashIndex < minHashLength) {
+        val hf = randomHashFunctions(hashIndex)
+        val permutedIndex = hf(shingleIndex) % shingleVocab.size
         if (minHash(hashIndex) > permutedIndex)
           minHash(hashIndex) = permutedIndex
-        
         hashIndex += 1
       }
     }
     minHash
+
   }
 
   /**
@@ -112,7 +106,7 @@ class LocalitySensitiveHash(
     }
 
     val elementsPerBand = (minHash.length / numberBands)
-    (0 to numberBands - 1).map { bandIndex =>
+    (0 until numberBands).map { bandIndex =>
       val start = bandIndex * elementsPerBand
       val end = start + elementsPerBand
       minHash.slice(start, end)
@@ -127,22 +121,40 @@ class LocalitySensitiveHash(
     val minHashCollection =
       documentShingles.mapValues(shingleSet => getMinHash(shingleSet))
 
-    val bands = (0 to numberBands - 1).map { bandIndex =>
-      val elementsPerBand = (1.0 * minHashLength / numberBands).ceil.toInt
+    val elementsPerBand = (1.0 * minHashLength / numberBands).ceil.toInt
+    
+    val bands = (0 until numberBands).par.map { bandIndex =>
       val start = bandIndex * elementsPerBand
       val end = start + elementsPerBand
       val subArray = minHashCollection.map { document =>
         (document._1, document._2.slice(start, end))
       }
       val band = new Band()
-      subArray.foreach(array => band.hash(array))
+      subArray.foreach(band.hash)
       band
     }
 
-    mBands = bands
+    mBands = bands.toIndexedSeq
   }
 
 }
+
+object LocalitySensitiveHash { }
+
+class HashFunction(slope: Int, const: Int) {
+  def apply(x: Double) = slope*x + const
+}
+
+object HashFunction {
+
+  def randomLinearHashFunctions(n: Int) = (0 until n).map { _=>
+    val slope = util.Random.nextInt(1000)
+    val const = util.Random.nextInt(1000)
+    new HashFunction(slope, const)
+  }
+
+}
+
 
 /**
   * One band of the Locality Sensitive Hash.
@@ -176,10 +188,36 @@ class Band {
 
 /** Compute the Jaccard Similarity of two sets**/
 object JaccardSimilarity {
-  def apply(set1: Set[String], set2: Set[String]): Double = {
-    val intersection = set1.intersect(set2).size
-    val union = set2.union(set2).size
-    (intersection * 1.0) / union
-  }
+  def apply(set1: Set[String], set2: Set[String]): Double =
+    (set1 & set2).size.toDouble/(set1 | set2).size
 }
 
+object Example {
+  def main(args:Array[String]) {
+    val lines = io.Source.fromFile(args(0)).getLines
+      .map(line => line.replaceAll("\\s+"," "))
+      .map(line => line.toLowerCase)
+      .toIndexedSeq
+      .zipWithIndex
+
+    // Hash all all documents read from file
+    val lsh = new LocalitySensitiveHash(
+      shingleLength=3,
+      minHashLength=100,
+      numberBands=10,
+      lines,
+      threshold = 0.5
+    )
+
+    // find the documents that are most similar to the below string
+    val testString = "RT @Adam_Schefter: QB Tebow broke the combined record for QBs with a 38-inch vertical jump. He also ran an impressive 40 time"
+
+    lsh.createHash()
+
+    val similarEntries = lsh.findSimilar(testString.replaceAll("\\s+"," ").toLowerCase)
+    for (index <- similarEntries)
+      println(lines(index))
+
+  }
+
+}

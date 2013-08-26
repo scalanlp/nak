@@ -21,15 +21,17 @@ class LocalitySensitiveHash(
   numRows: Int = 100,
   numBands: Int=20) {
 
+  import Similarity.jaccard
+  
   private[this] val rowsPerBand =
     (numRows.toDouble / numBands).ceil.toInt
 
   val threshold = math.pow(1.0/numBands,1.0/rowsPerBand)
   
   private[this] val processedDocuments: IndexedSeq[String] =
-    documents.map(StringCleaner.onlyAlpha).toIndexedSeq
+    documents.par.map(StringCleaner.onlyAlpha).toIndexedSeq
 
-  private[this] val randomHashFunctions: Seq[HashFunction] =
+  private[this] val randomHashFunctions: Seq[LinearHashFunction] =
     HashFunction.randomLinearHashFunctions(numRows)
 
   private[this] val documentShingles: IndexedSeq[Set[String]] =
@@ -48,31 +50,26 @@ class LocalitySensitiveHash(
     * Create the bands from the shingles.
     **/
   private[this] val mBands: IndexedSeq[Band] = {
-    val minHashCollection = documentShingles.map(getMinHash)
-    val rowsPerBand = (numRows.toDouble / numBands).ceil.toInt
-    val bands = (0 until numBands).par.map { bandIndex =>
-      val start = bandIndex * rowsPerBand
-      val end = start + rowsPerBand
-      val subArray = minHashCollection.zipWithIndex.map {
-        case (docHash, docIndex) => (docIndex, docHash.slice(start, end))
-      }
-      val band = new Band()
-      subArray.foreach(band.hash)
-      band
-    }
+    val minHashSignatures = documentShingles.par.map(getSignature).seq
+    
+    val bands = for {
+      bandData <- minHashSignatures.transpose.grouped(rowsPerBand)
+      subArraysForBand = bandData.toList.transpose.zipWithIndex
+    } yield Band(subArraysForBand)
+
     bands.toIndexedSeq
   }
   
-  def findCandidates(shingles: Set[String]) = {
-    val minHash = getMinHash(shingles)
-    val bandsForCandidate = minHash.grouped(rowsPerBand).toIndexedSeq
-    val subArrays = bandsForCandidate.zipWithIndex
-    val candidates = subArrays.par.flatMap { subArray =>
-      val index = subArray._2
-      val hashedBucket = mBands(index).getCollisionObjects(subArray._1)
-      hashedBucket
-    }.flatten.toSet
-    candidates
+  def getCandidates(shingles: Set[String]) = {
+    val bandsForCandidate =
+      getSignature(shingles).grouped(rowsPerBand).toList
+
+    val candidateLists = for {
+      (subArray, index) <- bandsForCandidate.zipWithIndex.par
+      bucket <- mBands(index).get(subArray)
+    } yield bucket
+
+    candidateLists.flatten.toSet
   }
 
   /**
@@ -85,23 +82,17 @@ class LocalitySensitiveHash(
     val shingles =
       StringCleaner.onlyAlpha(document).sliding(shingleLength).toSet
     
-    val similarItems = findCandidates(shingles).par.filter { candidate =>
-      val js = JaccardSimilarity(shingles, documentShingles(candidate.toInt))
-      js > threshold
+    val similarItems = getCandidates(shingles).par.filter { candidate =>
+      jaccard(shingles, documentShingles(candidate)) > threshold
     }
     similarItems.seq.toSet
   }
 
-  def getMinHash(shingles: Set[String]) = {
-
+  def getSignature(shingles: Set[String]) = {
     val minHash = Array.fill[Double](numRows)(Double.PositiveInfinity)
-    
-    for {
-      shingle <- shingles
-      if shingleVocab(shingle)
-      shingleIndex = getShingleIndex(shingle)
-    } {
-      // Use a while loop to be speedier (unfortunately).
+    shingles.filter(shingleVocab).map(getShingleIndex).foreach {
+      shingleIndex =>
+      // Using a while loop to be speedier (unfortunately).
       var hashIndex = 0
       while (hashIndex < numRows) {
         val hf = randomHashFunctions(hashIndex)
@@ -111,60 +102,53 @@ class LocalitySensitiveHash(
         hashIndex += 1
       }
     }
-    minHash
+    minHash.toList
   }
 }
 
-class HashFunction(slope: Int, const: Int) {
+/**
+  * Simple line function: y = mx+b
+  */ 
+class LinearHashFunction(slope: Int, const: Int) {
   def apply(x: Double) = slope*x + const
 }
 
 object HashFunction {
 
-  def randomLinearHashFunctions(n: Int) = (0 until n).map { _=>
-    val slope = util.Random.nextInt(1000)
-    val const = util.Random.nextInt(1000)
-    new HashFunction(slope, const)
+  def randomLinearHashFunctions(n: Int) = {
+    val functions = (0 until n).par.map { _=>
+      val slope = util.Random.nextInt(1000)
+      val const = util.Random.nextInt(1000)
+      new LinearHashFunction(slope, const)
+    }
+    functions.seq
   }
-
 }
 
 
 /**
   * One band of the Locality Sensitive Hash.
   **/
-class Band {
-  import scala.collection.mutable.ArrayBuffer
-  val buckets =
-    scala.collection.mutable.Map[List[Double], ArrayBuffer[Int]]()
+class Band(buckets: Map[List[Double], List[Int]]) {
 
-  /** Hash the sub-array into buckets **/
-  def hash(subArray: (Int, Array[Double])) {
-    val subList = subArray._2.toList
-    buckets.get(subList) match {
-      case Some(value) => value += subArray._1
-      case None => buckets(subList) = ArrayBuffer(subArray._1)
-    }
-  }
-
-  /** Return the documents that collide to the same bucket **/
-  def getCollisionObjects(subArray: Array[Double]): Option[List[Int]] = {
-    val subList = subArray.toList
-    buckets.get(subList) match {
-      case Some(value) =>
-        Some(value.toList)
-
-      case None =>
-        buckets(subList) = ArrayBuffer(-1)
-        None
-    }
-  }
+  /** Return the documents that collide to the same bucket. **/
+  def get(subArray: List[Double]): Option[List[Int]] =
+    buckets.get(subArray)
 
 }
 
-/** Compute the Jaccard Similarity of two sets**/
-object JaccardSimilarity {
-  def apply(set1: Set[String], set2: Set[String]): Double =
+object Band {
+  import CollectionUtil._
+  
+  /** Hash the sub-arrays into buckets to form a band. **/
+  def apply(subArraysForBand: Seq[(List[Double], Int)]) =
+    new Band(subArraysForBand.groupByKey.mapValues(_.toList))
+}
+
+
+object Similarity {
+  /** Compute the Jaccard Similarity of two sets**/
+  def jaccard(set1: Set[String], set2: Set[String]): Double =
     (set1 & set2).size.toDouble/(set1 | set2).size
 }
 
@@ -181,7 +165,6 @@ object Example {
     val similarEntries = lsh.findSimilar(testString)
     for (index <- similarEntries)
       println(lines(index))
-
   }
 
 }

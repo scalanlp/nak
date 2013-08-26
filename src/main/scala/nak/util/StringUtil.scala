@@ -42,6 +42,13 @@ object StringCleaner {
       .trim()
     if (doLowerCase) cleaned.toLowerCase else cleaned
   }
-    
+
+  def onlyAlpha (raw: String): String = raw
+    .replaceAll("[^\\p{L}\\p{N}]", " ")
+    .replaceAll("""\b\d+\b""", " ")
+    .replaceAll("\\s+"," ")
+    .trim()
+    .toLowerCase
+
 }
 

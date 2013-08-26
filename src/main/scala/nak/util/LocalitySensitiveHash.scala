@@ -16,38 +16,52 @@ package nak.util
   * threshold is approximately equal to  (1/numberBands)^(1/rows per band).
  **/
 class LocalitySensitiveHash(
+  processedDocuments: IndexedSeq[(String, Int)],
   shingleLength: Int = 3,
   minHashLength: Int = 100,
   numberBands: Int=10,
-  processedDocuments: IndexedSeq[(String, Int)],
   threshold: Double=0.8) {
-  
+
+  val elementsPerBand = (minHashLength.toDouble / numberBands).ceil.toInt
   val randomHashFunctions =
     HashFunction.randomLinearHashFunctions(minHashLength)
 
   val documentShingles: Map[Int, Set[String]] =
-    processedDocuments.map { document =>
-      val shingles = document._1.toList.sliding(shingleLength)
-        .map(_.mkString).toSet
-      (document._2, shingles)
-    }.toMap
+    //(for ((text, index) <- processedDocuments) yield {
+    processedDocuments.par.map { case(text, index) =>
+        (index, text.sliding(shingleLength).toSet)
+    }.seq.toMap
 
   val shingleVocab =
     documentShingles.values.flatten.toSet.toIndexedSeq.zipWithIndex.toMap
-
-  var mBands: IndexedSeq[Band] = null
-
+  
+  /**
+    * Create a locality sensitive hash for the all the processed documents.
+    **/
+  val mBands: IndexedSeq[Band] = {
+    val minHashCollection = documentShingles.mapValues(getMinHash)
+    val elementsPerBand = (minHashLength.toDouble / numberBands).ceil.toInt
+    val bands = (0 until numberBands).par.map { bandIndex =>
+      val start = bandIndex * elementsPerBand
+      val end = start + elementsPerBand
+      val subArray = minHashCollection.map { document =>
+        (document._1, document._2.slice(start, end))
+      }
+      val band = new Band()
+      subArray.foreach(band.hash)
+      band
+    }
+    bands.toIndexedSeq
+  }
+  
   def findCandidates(shingles: Set[String]) = {
     val minHash = getMinHash(shingles)
-
     val subArrays = partitionArray(minHash).zipWithIndex
-
     val candidates = subArrays.par.flatMap { subArray =>
       val index = subArray._2
       val hashedBucket = mBands(index).getCollisionObjects(subArray._1)
       hashedBucket
     }.flatten.toSet
-
     candidates
   }
 
@@ -58,39 +72,11 @@ class LocalitySensitiveHash(
     * @param : document . The document for which similar documents have to be identified
     **/
   def findSimilar(document: String) = {
-    val shingles = document.toLowerCase.sliding(shingleLength).toSet
+    val shingles = StringCleaner.onlyAlpha(document).sliding(shingleLength).toSet
     findCandidates(shingles).par.filter { candidate =>
       val js = JaccardSimilarity(shingles, documentShingles(candidate.toInt))
       js > threshold
     }
-  }
-
-  /**
-    * Returns the Min Hash of a document
-    * 
-    * @param : The shingle representation for that document
-    **/
-  def getMinHash(shingles: Set[String]) = {
-
-    val minHash = Array.fill[Double](minHashLength)(Double.PositiveInfinity)
-
-    for {
-      shingle <- shingles
-      if shingleVocab.contains(shingle)
-      shingleIndex = shingleVocab(shingle)
-    } {
-
-      var hashIndex = 0
-      while (hashIndex < minHashLength) {
-        val hf = randomHashFunctions(hashIndex)
-        val permutedIndex = hf(shingleIndex) % shingleVocab.size
-        if (minHash(hashIndex) > permutedIndex)
-          minHash(hashIndex) = permutedIndex
-        hashIndex += 1
-      }
-    }
-    minHash
-
   }
 
   /**
@@ -103,43 +89,36 @@ class LocalitySensitiveHash(
     if (minHash.length < numberBands) {
       println("number of bands exceeds minHash")
       System.exit(0)
-    }
-
-    val elementsPerBand = (minHash.length / numberBands)
+    };
+    
     (0 until numberBands).map { bandIndex =>
       val start = bandIndex * elementsPerBand
       val end = start + elementsPerBand
       minHash.slice(start, end)
     }
   }
+  
+  def getMinHash(shingles: Set[String]) = {
 
-  /**
-    * Create a locality sensitive hash for the all the processed documents.
-    **/
-  def createHash() = {
-
-    val minHashCollection =
-      documentShingles.mapValues(shingleSet => getMinHash(shingleSet))
-
-    val elementsPerBand = (1.0 * minHashLength / numberBands).ceil.toInt
+    val minHash = Array.fill[Double](minHashLength)(Double.PositiveInfinity)
     
-    val bands = (0 until numberBands).par.map { bandIndex =>
-      val start = bandIndex * elementsPerBand
-      val end = start + elementsPerBand
-      val subArray = minHashCollection.map { document =>
-        (document._1, document._2.slice(start, end))
+    for {
+      shingle <- shingles
+      if shingleVocab.contains(shingle)
+      shingleIndex = shingleVocab(shingle)
+    } {
+      var hashIndex = 0
+      while (hashIndex < minHashLength) {
+        val hf = randomHashFunctions(hashIndex)
+        val permutedIndex = hf(shingleIndex) % shingleVocab.size
+        if (minHash(hashIndex) > permutedIndex)
+          minHash(hashIndex) = permutedIndex
+        hashIndex += 1
       }
-      val band = new Band()
-      subArray.foreach(band.hash)
-      band
     }
-
-    mBands = bands.toIndexedSeq
+    minHash
   }
-
 }
-
-object LocalitySensitiveHash { }
 
 class HashFunction(slope: Int, const: Int) {
   def apply(x: Double) = slope*x + const
@@ -174,12 +153,13 @@ class Band {
 
   /** Return the documents that collide to the same bucket **/
   def getCollisionObjects(subArray: Array[Double]): Option[List[Int]] = {
-    buckets.get(subArray.toList) match {
+    val subList = subArray.toList
+    buckets.get(subList) match {
       case Some(value: ArrayBuffer[Int]) =>
         Some(value.toList)
 
       case None =>
-        buckets(subArray.toList) = ArrayBuffer(-1)
+        buckets(subList) = ArrayBuffer(-1)
         None
     }
   }
@@ -195,26 +175,23 @@ object JaccardSimilarity {
 object Example {
   def main(args:Array[String]) {
     val lines = io.Source.fromFile(args(0)).getLines
-      .map(line => line.replaceAll("\\s+"," "))
-      .map(line => line.toLowerCase)
+      .map(StringCleaner.onlyAlpha)
       .toIndexedSeq
       .zipWithIndex
 
     // Hash all all documents read from file
     val lsh = new LocalitySensitiveHash(
+      lines,
       shingleLength=3,
       minHashLength=100,
       numberBands=10,
-      lines,
       threshold = 0.5
     )
 
     // find the documents that are most similar to the below string
     val testString = "RT @Adam_Schefter: QB Tebow broke the combined record for QBs with a 38-inch vertical jump. He also ran an impressive 40 time"
 
-    lsh.createHash()
-
-    val similarEntries = lsh.findSimilar(testString.replaceAll("\\s+"," ").toLowerCase)
+    val similarEntries = lsh.findSimilar(testString)
     for (index <- similarEntries)
       println(lines(index))
 

@@ -2,18 +2,18 @@ package nak
 
 /**
  Copyright 2013 Jason Baldridge
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
- You may obtain a copy of the License at 
- 
+ You may obtain a copy of the License at
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
- limitations under the License. 
+ limitations under the License.
 */
 
 import nak.core._
@@ -47,7 +47,7 @@ object NakContext {
   /**
    * Convert examples that are stored as files in directories, where each directory name acts
    * as the label for all the files it contains. (E.g. the 20 News Groups data.)
-   */ 
+   */
   def fromLabeledDirs(topdir: File)
     (implicit codec: scala.io.Codec): Iterator[Example[String,String]] = {
     for {
@@ -70,16 +70,16 @@ object NakContext {
    * This is the easiest way to build and use a classifier.
    */
   def trainClassifier[I](
-    config: LiblinearConfig, 
-    featurizer: Featurizer[I,String], 
+    config: LiblinearConfig,
+    featurizer: Featurizer[I,String],
     rawExamples: Seq[Example[String, I]]
   ): IndexedClassifier[String] with FeaturizedClassifier[String, I] = {
 
     // Featurize and index the examples.
-    val indexer = new ExampleIndexer    
+    val indexer = new ExampleIndexer
     val examples = rawExamples.map(_.map(featurizer)).map(indexer)
     val (lmap,fmap) = indexer.getMaps
-        
+
     // Train the model, and then return the classifier.
     val model = trainModel(config, examples, fmap.size)
     Classifier(model, lmap, fmap, featurizer)
@@ -95,12 +95,12 @@ object NakContext {
    *   http://hunch.net/~jl/projects/hash_reps/index.html
    */
   def trainClassifierHashed[I](
-    config: LiblinearConfig, 
+    config: LiblinearConfig,
     featurizer: Featurizer[I,String],
     rawExamples: Seq[Example[String, I]],
     maxNumberOfFeatures: Int = 10000
   ): IndexedClassifier[String] with FeaturizedClassifier[String, I] = {
-  
+
     // Featurize and index the examples.
     val indexer = new HashedExampleIndexer(maxNumberOfFeatures)
     val primeNumberOfFeatures = indexer.highestFeatureIndex
@@ -116,18 +116,18 @@ object NakContext {
   /**
    * Trains a classifier given indexed examples and the label and feature maps produced
    * by indexation.
-   */ 
+   */
   def trainClassifier(
     config: LiblinearConfig,
     examples: TraversableOnce[Example[Int,Seq[FeatureObservation[Int]]]],
-    lmap: Map[String, Int], 
+    lmap: Map[String, Int],
     fmap: Map[String, Int]
-  ): IndexedClassifier[String] = 
+  ): IndexedClassifier[String] =
     Classifier(trainModel(config,examples,fmap.size), lmap, fmap)
 
   /**
    * Save a classifier to disk by using Java serialization.
-   */ 
+   */
   def saveClassifier(classifier: Classifier, filename: String) {
     import java.io._
     val stream = new FileOutputStream(filename)
@@ -137,11 +137,22 @@ object NakContext {
 
   /**
    * Read a classifier from disk by using Java deserialization.
-   */ 
+   */
   def loadClassifier[C<:Classifier](filename: String) = {
     import java.io._
     val stream = new FileInputStream(filename)
     val classifier = new ObjectInputStream(stream).readObject.asInstanceOf[C]
+    stream.close
+    classifier
+  }
+
+  /**
+   * Read a classifier from the classpath using Java deserialization.
+   */
+  def loadClassifierFromResource[C<:Classifier](resource: String) = {
+    import java.io._
+    val stream = new ObjectInputStream(this.getClass.getResourceAsStream(resource))
+    val classifier = stream.readObject.asInstanceOf[C]
     stream.close
     classifier
   }
@@ -156,7 +167,7 @@ object NakContext {
     examples: TraversableOnce[Example[Int,Seq[FeatureObservation[Int]]]],
     numFeatures: Int): LiblinearModel = {
 
-    val (responses, observationsAsTuples) = 
+    val (responses, observationsAsTuples) =
       examples.map(ex => (ex.label, ex.features.map(_.tuple).toSeq)).toSeq.unzip
     val observations = createLiblinearMatrix(observationsAsTuples)
     new LiblinearTrainer(config)(responses.map(_.toDouble).toArray, observations, numFeatures)

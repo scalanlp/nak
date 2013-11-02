@@ -4,7 +4,7 @@ version := "1.2.0-SNAPSHOT"
 
 organization := "org.scalanlp"
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.10.3"
 
 retrieveManaged := true
 

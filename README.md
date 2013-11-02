@@ -6,15 +6,15 @@ We'd love to have some more contributors: if you are interested in helping out, 
 
 ## What's inside
 
-Nak currently provides implementations for k-means clustering and supervised learning with logistic regression and support vector machines. Other algorithms will be added soon, especially due to the planned merger of [breeze.learn](https://github.com/scalanlp/breeze/tree/master/learn) with Nak. (See [the ScalaNLP roadmap](https://github.com/scalanlp/breeze/wiki/ScalaNLP-Roadmap) for details.)
+Nak currently provides implementations for k-means clustering and supervised learning with logistic regression and support vector machines. Other models and algorithms that were formerly in [breeze.learn] are now in Nak. 
 
-See [the Nak wiki](https://github.com/scalanlp/nak/wiki) for (some preliminary) documentation.
+See [the Nak wiki](https://github.com/scalanlp/nak/wiki) for (some preliminary and unfortunately sparse) documentation.
 
-The latest stable release of Nak is 1.1.3. Changes from the previous release include:
+The latest stable release of Nak is 1.2.0. Changes from the previous release include:
 
-* Enabled the hashing trick to be used for linear models. See nak.data.HashedExampleIndex and nak.data.HashedFeatureMap.
-* PCA now supported directly in Nak for dimensionality reduction w/ kmeans.
-* All OpenNLP Maxent code purged from Nak.
+* breeze-learn pulled into Nak
+* K-means from breeze-learn and Nak merged.
+* Added locality sensitive hashing
 
 See the [CHANGELOG](https://github.com/scalanlp/nak/wiki/CHANGELOG) for changes in previous versions.
 
@@ -22,14 +22,14 @@ See the [CHANGELOG](https://github.com/scalanlp/nak/wiki/CHANGELOG) for changes 
 
 In SBT:
 
-    libraryDependencies += "org.scalanlp" % "nak" % "1.1.3"
+    libraryDependencies += "org.scalanlp" % "nak" % "1.2.0"
 
 In Maven:
 
     <dependency>
        <groupId>org.scalanlp</groupId>
        <artifactId>nak</artifactId>
-       <version>1.1.3</version>
+       <version>1.2.0</version>
     </dependency>
 
 

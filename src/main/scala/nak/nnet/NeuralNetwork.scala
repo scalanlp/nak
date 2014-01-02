@@ -74,6 +74,8 @@ class NNObjective[Output](data: IndexedSeq[(DenseVector[Double],Output)],
 
   def extract(x: DenseVector[Double]) = new NeuralNetwork(unrollWeights(x))
 
+  def pack(x : NeuralNetwork) = rollWeights(x.parameters)
+
   private val weightOffsets = {
     // just an unfold
     val arr = new Array[Int](layers.length)

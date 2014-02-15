@@ -84,19 +84,19 @@ object Example {
 
 
 /**
- * Indexes the labels and features of a series of examples. Can be made much
- * more general, but just doing what is needed for the time being.
- */
+  * Indexes the labels and features of a series of examples. Can be made much
+  * more general, but just doing what is needed for the time being.
+  */
 class ExampleIndexer(addDummyFirstIndex: Boolean = true)
-extends (Example[String,Seq[FeatureObservation[String]]]
-         => Example[Int,Seq[FeatureObservation[Int]]]) {
+    extends (Example[String,Seq[FeatureObservation[String]]]
+      => Example[Int,Seq[FeatureObservation[Int]]]) {
 
   import nak.NakContext._
   import nak.util.GrowableIndex
 
   private[this] val lmap = new GrowableIndex[String]()
   private[this] val fmap = new GrowableIndex[String]()
-  if (addDummyFirstIndex) 
+  if (addDummyFirstIndex)
     fmap("DUMMY FEATURE BECAUSE LIBLINEAR STARTS WITH 1-BASED INDEX")
 
   def apply(ex: Example[String,Seq[FeatureObservation[String]]]) =
@@ -105,6 +105,33 @@ extends (Example[String,Seq[FeatureObservation[String]]]
       .map(condense)
 
   def getMaps = (lmap.toMap, fmap.toMap)
+
+}
+
+/**
+  * Indexes the labels and features of a series of examples. Can be made much
+  * more general, but just doing what is needed for the time being.
+  */
+class BinomialExampleIndexer(
+  successLabel: String = "Y",
+  failureLabel: String = "N",
+  addDummyFirstIndex: Boolean = true
+) extends (Example[(Int,Int),Seq[FeatureObservation[String]]]
+  => Example[(Int,Int),Seq[FeatureObservation[Int]]]) {
+
+  import nak.NakContext._
+  import nak.util.GrowableIndex
+
+  private[this] val lmap = Map(successLabel->0,failureLabel->1)
+  private[this] val fmap = new GrowableIndex[String]()
+  if (addDummyFirstIndex)
+    fmap("DUMMY FEATURE BECAUSE LIBLINEAR STARTS WITH 1-BASED INDEX")
+
+  def apply(ex: Example[(Int,Int),Seq[FeatureObservation[String]]]) =
+    ex.map(_.map(feature => feature.map(fmap)))
+      .map(condense)
+
+  def getMaps = (lmap, fmap.toMap)
 
 }
 

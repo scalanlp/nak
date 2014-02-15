@@ -18,7 +18,7 @@ package nak
 
 import nak.core._
 import nak.data._
-import nak.liblinear.{Model => LiblinearModel, LiblinearConfig, LiblinearTrainer}
+import nak.liblinear.{Model => LiblinearModel, LiblinearConfig, LiblinearTrainer,LiblinearTrainerBinomial}
 import nak.liblinear.LiblinearUtil._
 
 import scala.collection.JavaConversions._
@@ -85,6 +85,22 @@ object NakContext {
     Classifier(model, lmap, fmap, featurizer)
   }
 
+  def trainBinomialClassifier[I](
+    config: LiblinearConfig,
+    featurizer: Featurizer[I,String],
+    rawExamples: Seq[Example[(Int,Int), I]]
+  ): IndexedClassifier[String] with FeaturizedClassifier[String, I] = {
+
+    // Featurize and index the examples.
+    val indexer = new BinomialExampleIndexer
+    val examples = rawExamples.map(_.map(featurizer)).map(indexer)
+    val (lmap,fmap) = indexer.getMaps
+
+    // Train the model, and then return the classifier.
+    val model = trainBinomialModel(config, examples, fmap.size)
+    Classifier(model, lmap, fmap, featurizer)
+  }
+
   /**
    * Trains a classifier given examples and featurizer. Uses the hashing trick
    * for indexing features, and creates a classifier that can be applied directly
@@ -124,6 +140,7 @@ object NakContext {
     fmap: Map[String, Int]
   ): IndexedClassifier[String] =
     Classifier(trainModel(config,examples,fmap.size), lmap, fmap)
+
 
   /**
    * Save a classifier to disk by using Java serialization.
@@ -173,7 +190,18 @@ object NakContext {
     new LiblinearTrainer(config)(responses.map(_.toDouble).toArray, observations, numFeatures)
   }
 
+  def trainBinomialModel(
+    config: LiblinearConfig,
+    examples: TraversableOnce[Example[(Int,Int),Seq[FeatureObservation[Int]]]],
+    numFeatures: Int): LiblinearModel = {
 
+    val (responses, observationsAsTuples) =
+      examples.map(ex => (ex.label, ex.features.map(_.tuple).toSeq)).toSeq.unzip
+    val observations = createLiblinearMatrix(observationsAsTuples)
+    new LiblinearTrainerBinomial(config)(responses.toArray, observations, numFeatures)
+  }
+
+  
   /**
    * Given a sequence of feature observations (a feature and its magnitude), combine
    * multiple instances of the same feature, and then sort the result.

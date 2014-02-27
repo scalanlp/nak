@@ -284,37 +284,7 @@ object LFMatrix {
 
   implicit def coordSpace[L, V, I](implicit space: MutableCoordinateSpace[V, Double]) = {
     import space._
-    MutableCoordinateSpace.make[LFMatrix[L,V], Double](
-      implicitly[  norm.Impl2[LFMatrix[L, V], Double, Double]],
-      implicitly[  norm.Impl[Double, Double]],
-      implicitly[  CanMapValues[LFMatrix[L, V], Double, Double, LFMatrix[L, V]]],
-      implicitly[  CanZipMapValues[LFMatrix[L, V], Double, Double, LFMatrix[L, V]]],
-      implicitly[  OpAdd.Impl2[LFMatrix[L, V], Double, LFMatrix[L, V]]],
-      implicitly[  OpSub.Impl2[LFMatrix[L, V], Double, LFMatrix[L, V]]],
-      implicitly[  OpMulScalar.Impl2[LFMatrix[L, V], LFMatrix[L, V], LFMatrix[L, V]]],
-      implicitly[  OpDiv.Impl2[LFMatrix[L, V], LFMatrix[L, V], LFMatrix[L, V]]],
-      implicitly[  CanCopy[LFMatrix[L, V]]],
-      implicitly[  OpMulScalar.InPlaceImpl2[LFMatrix[L, V], Double]],
-      implicitly[  OpDiv.InPlaceImpl2[LFMatrix[L, V], Double]],
-      implicitly[  OpAdd.InPlaceImpl2[LFMatrix[L, V], LFMatrix[L, V]]],
-      implicitly[  OpSub.InPlaceImpl2[LFMatrix[L, V], LFMatrix[L, V]]],
-      implicitly[  OpAdd.InPlaceImpl2[LFMatrix[L, V], Double]],
-      implicitly[  OpSub.InPlaceImpl2[LFMatrix[L, V], Double]],
-      implicitly[  OpMulScalar.InPlaceImpl2[LFMatrix[L, V], LFMatrix[L, V]]],
-      implicitly[  OpDiv.InPlaceImpl2[LFMatrix[L, V], LFMatrix[L, V]]],
-      implicitly[  OpSet.InPlaceImpl2[LFMatrix[L, V], LFMatrix[L, V]]],
-      implicitly[  OpSet.InPlaceImpl2[LFMatrix[L, V], Double]],
-      implicitly[  Field[Double]],
-      implicitly[  CanCreateZerosLike[LFMatrix[L, V], LFMatrix[L, V]]],
-      implicitly[  OpMulScalar.Impl2[LFMatrix[L, V], Double, LFMatrix[L, V]]],
-      implicitly[  OpDiv.Impl2[LFMatrix[L, V], Double, LFMatrix[L, V]]],
-      implicitly[  OpAdd.Impl2[LFMatrix[L, V], LFMatrix[L, V], LFMatrix[L, V]]],
-      implicitly[  OpSub.Impl2[LFMatrix[L, V], LFMatrix[L, V], LFMatrix[L, V]]],
-      implicitly[  OpNeg.Impl[LFMatrix[L, V], LFMatrix[L, V]]],
-      implicitly[LFMatrix[L, V] <:< NumericOps[LFMatrix[L, V]]],
-      implicitly[  CanAxpy[Double, LFMatrix[L, V], LFMatrix[L, V]]],
-      implicitly[  OpMulInner.Impl2[LFMatrix[L, V], LFMatrix[L, V], Double]]
-    )
+    MutableCoordinateSpace.make[LFMatrix[L,V], Double]
   }
 
 

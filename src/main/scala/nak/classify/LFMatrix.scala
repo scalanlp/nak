@@ -1,13 +1,13 @@
 package nak.classify
 
 import breeze.util.{Encoder, Index}
-import breeze.linalg.{Counter, DenseVector, NumericOps}
+import breeze.linalg.{norm, Counter, DenseVector, NumericOps}
 import breeze.linalg.operators._
-import breeze.linalg.support.{CanCreateZerosLike, CanCopy, CanZipMapValues, CanNorm}
-import breeze.generic.{URFunc, UReduceable, CanMapValues}
+import breeze.linalg.support._
+import breeze.generic._
 import nak.serialization.DataSerialization
 import nak.serialization.DataSerialization.ReadWritable
-import breeze.math.{MutableCoordinateSpace, TensorSpace}
+import breeze.math.{Field, MutableCoordinateSpace, TensorSpace}
 import scala.reflect.ClassTag
 
 /**
@@ -60,9 +60,9 @@ class LFMatrix[L,TF:ClassTag](val data: Array[TF],
 
 object LFMatrix {
   implicit def lfMatrixTimesTF[L,TF]
-  (implicit inner: BinaryOp[TF,TF,OpMulInner,Double], numeric: TF=>NumericOps[TF])
-  : BinaryOp[LFMatrix[L,TF],TF,OpMulMatrix,DenseVector[Double]]  = {
-    new BinaryOp[LFMatrix[L,TF],TF,OpMulMatrix,DenseVector[Double]] {
+  (implicit inner: OpMulInner.Impl2[TF,TF,Double], numeric: TF=>NumericOps[TF])
+  : OpMulMatrix.Impl2[LFMatrix[L,TF],TF,DenseVector[Double]]  = {
+    new OpMulMatrix.Impl2[LFMatrix[L,TF],TF,DenseVector[Double]] {
 
       def apply(v1: LFMatrix[L, TF], v2: TF) = {
         val r = DenseVector.zeros[Double](v1.numLabels)
@@ -75,9 +75,9 @@ object LFMatrix {
   }
 
   implicit def lfBinaryOp[L,TF,Op<:OpType]
-  (implicit op: BinaryOp[TF,Double,Op,TF], numeric: TF=>NumericOps[TF])
-  : BinaryOp[LFMatrix[L,TF],Double,Op,LFMatrix[L,TF]]  = {
-    new BinaryOp[LFMatrix[L,TF],Double,Op,LFMatrix[L,TF]] {
+  (implicit op: UFunc.UImpl2[Op, TF,Double,TF], numeric: TF=>NumericOps[TF])
+  : UFunc.UImpl2[Op, LFMatrix[L,TF],Double,LFMatrix[L,TF]]  = {
+    new UFunc.UImpl2[Op, LFMatrix[L,TF],Double,LFMatrix[L,TF]] {
 
       def apply(v1: LFMatrix[L, TF], v2: Double) = {
         val r = v1.empty
@@ -89,10 +89,10 @@ object LFMatrix {
     }
   }
 
-  implicit def lfBinaryOpBackwards[L,TF,Op<:OpType]
-  (implicit op: BinaryOp[Double,TF,Op,TF], numeric: TF=>NumericOps[TF])
-  : BinaryOp[Double,LFMatrix[L,TF],Op,LFMatrix[L,TF]]  = {
-    new BinaryOp[Double,LFMatrix[L,TF],Op,LFMatrix[L,TF]] {
+  implicit def lfbinaryOpBackwards[L,TF,Op<:OpType]
+  (implicit op: UFunc.UImpl2[Op, Double,TF,TF], numeric: TF=>NumericOps[TF])
+  : UFunc.UImpl2[Op, Double,LFMatrix[L,TF],LFMatrix[L,TF]]  = {
+    new UFunc.UImpl2[Op, Double,LFMatrix[L,TF],LFMatrix[L,TF]] {
 
       def apply(v2: Double, v1: LFMatrix[L, TF]) = {
         val r = v1.empty
@@ -105,9 +105,9 @@ object LFMatrix {
   }
 
   implicit def lfBinaryTFOp[L,TF,Op<:OpType]
-  (implicit op: BinaryOp[TF,TF,Op,TF], numeric: TF=>NumericOps[TF])
-  : BinaryOp[LFMatrix[L,TF],LFMatrix[L,TF],Op,LFMatrix[L,TF]]  = {
-    new BinaryOp[LFMatrix[L,TF],LFMatrix[L,TF],Op,LFMatrix[L,TF]] {
+  (implicit op: UFunc.UImpl2[Op, TF,TF,TF], numeric: TF=>NumericOps[TF])
+  : UFunc.UImpl2[Op, LFMatrix[L,TF],LFMatrix[L,TF],LFMatrix[L,TF]]  = {
+    new UFunc.UImpl2[Op, LFMatrix[L,TF],LFMatrix[L,TF],LFMatrix[L,TF]] {
 
       def apply(v2: LFMatrix[L,TF], v1: LFMatrix[L, TF]) = {
         val r = v1.empty
@@ -122,9 +122,9 @@ object LFMatrix {
   }
 
   implicit def lfInnerOp[L,TF]
-  (implicit op: BinaryOp[TF,TF,OpMulInner,Double], numeric: TF=>NumericOps[TF])
-  : BinaryOp[LFMatrix[L,TF],LFMatrix[L,TF],OpMulInner,Double]  = {
-    new BinaryOp[LFMatrix[L,TF],LFMatrix[L,TF],OpMulInner,Double] {
+  (implicit op: OpMulInner.Impl2[TF,TF,Double], numeric: TF=>NumericOps[TF])
+  : OpMulInner.Impl2[LFMatrix[L,TF],LFMatrix[L,TF],Double]  = {
+    new OpMulInner.Impl2[LFMatrix[L,TF],LFMatrix[L,TF],Double] {
       def apply(v2: LFMatrix[L,TF], v1: LFMatrix[L, TF]) = {
         var r = 0.0
         for( (tf, l) <- v1.data.zipWithIndex) {
@@ -137,14 +137,14 @@ object LFMatrix {
   }
 
   implicit def lfBinaryOp2[L,TF,Op]
-  (implicit op: BinaryOp[TF,Double,OpMulScalar,TF], numeric: TF=>NumericOps[TF])
-  : BinaryOp[LFMatrix[L,TF],Double,OpMulScalar,LFMatrix[L,TF]]  = {
-    new BinaryOp[LFMatrix[L,TF],Double, OpMulScalar, LFMatrix[L,TF]] {
+  (implicit op: UFunc.UImpl2[OpMulScalar.type, TF, Double,TF], numeric: TF=>NumericOps[TF])
+  : UFunc.UImpl2[OpMulScalar.type, LFMatrix[L,TF], Double,LFMatrix[L,TF]]  = {
+    new UFunc.UImpl2[OpMulScalar.type, LFMatrix[L,TF],Double, LFMatrix[L,TF]] {
 
       def apply(v1: LFMatrix[L, TF], v2: Double) = {
         val r = v1.empty
         for( (tf, l) <- v1.data.zipWithIndex) {
-          r(l) = tf :* v2
+          r(l) = tf.:*(v2)(op)
         }
         r
       }
@@ -152,12 +152,11 @@ object LFMatrix {
   }
 
   implicit def lfUpdateOp[L,TF,Op<:OpType]
-  (implicit op: BinaryUpdateOp[TF,Double,Op], numeric: TF=>NumericOps[TF])
-  : BinaryUpdateOp[LFMatrix[L,TF],Double,Op]  = {
-    new BinaryUpdateOp[LFMatrix[L,TF],Double,Op] {
+  (implicit op: UFunc.InPlaceImpl2[Op, TF,Double], numeric: TF=>NumericOps[TF])
+  : UFunc.InPlaceImpl2[Op, LFMatrix[L,TF],Double]  = {
+    new UFunc.InPlaceImpl2[Op, LFMatrix[L,TF], Double] {
 
       def apply(v1: LFMatrix[L, TF], v2: Double) {
-        val r = v1.empty
         for( tf <- v1.data) {
           op(tf,v2)
         }
@@ -166,9 +165,9 @@ object LFMatrix {
   }
 
   implicit def lfBinaryTFUpdateOp[L,TF,Op<:OpType]
-  (implicit op: BinaryUpdateOp[TF,TF,Op], numeric: TF=>NumericOps[TF])
-  : BinaryUpdateOp[LFMatrix[L,TF],LFMatrix[L,TF],Op]  = {
-    new BinaryUpdateOp[LFMatrix[L,TF],LFMatrix[L,TF],Op] {
+  (implicit op: UFunc.InPlaceImpl2[Op, TF,TF], numeric: TF=>NumericOps[TF])
+  :  UFunc.InPlaceImpl2[Op, LFMatrix[L,TF],LFMatrix[L,TF]]  = {
+    new  UFunc.InPlaceImpl2[Op, LFMatrix[L,TF],LFMatrix[L,TF]] {
       def apply(v2: LFMatrix[L,TF], v1: LFMatrix[L, TF]) {
         require(v2.labelIndex == v1.labelIndex)
         for( (tf, l) <- v1.data.zipWithIndex) {
@@ -194,9 +193,9 @@ object LFMatrix {
   }
 
   implicit def lfUnaryOp[L,TF,Op<:OpType]
-  (implicit op: UnaryOp[TF,Op,TF], numeric: TF=>NumericOps[TF])
-  : UnaryOp[LFMatrix[L,TF], Op, LFMatrix[L, TF]]  = {
-    new UnaryOp[LFMatrix[L,TF],Op, LFMatrix[L, TF]] {
+  (implicit op: UFunc.UImpl[Op, TF, TF], numeric: TF=>NumericOps[TF])
+  : UFunc.UImpl[Op, LFMatrix[L,TF], LFMatrix[L, TF]]  = {
+    new UFunc.UImpl[Op, LFMatrix[L,TF], LFMatrix[L, TF]] {
       def apply(v1: LFMatrix[L, TF]) = {
         val r = v1.empty
         for( (tf, l) <- v1.data.zipWithIndex) {
@@ -207,8 +206,8 @@ object LFMatrix {
     }
   }
 
-  implicit def lfNorm[L,TF](implicit op: CanNorm[TF]) : CanNorm[LFMatrix[L,TF]] = {
-    new CanNorm[LFMatrix[L,TF]] {
+  implicit def lfNorm[L,TF](implicit op: norm.Impl2[TF, Double, Double]) : norm.Impl2[LFMatrix[L,TF], Double, Double] = {
+    new norm.Impl2[LFMatrix[L,TF], Double, Double] {
       def apply(v1: LFMatrix[L, TF], v2: Double) = {
         math.pow(v1.data.iterator.map(op.apply(_,v2)).map(math.pow(_,v2)).sum, 1/v2)
       }
@@ -283,14 +282,9 @@ object LFMatrix {
      }
    }
 
-  implicit def ureduceable[L, TF, I, V](implicit space: TensorSpace[TF, I, V]) = new UReduceable[LFMatrix[L, TF], V] {
-    import space._
-    def apply[Final](c: LFMatrix[L, TF], f: URFunc[V, Final]): Final = f(c.data.iterator.flatMap(_.valuesIterator))
-  }
-
   implicit def coordSpace[L, V, I](implicit space: MutableCoordinateSpace[V, Double]) = {
     import space._
-    MutableCoordinateSpace.make[LFMatrix[L, V], Double]
+    MutableCoordinateSpace.make[LFMatrix[L,V], Double]
   }
 
 
@@ -308,10 +302,10 @@ class UnindexedLFMatrix[L,TF](val indexed: LFMatrix[L, TF])  extends NumericOps[
 }
 
 object UnindexedLFMatrix {
-  implicit def lfMatrixTimesTF[L,TF]
-  (implicit inner: BinaryOp[TF,TF,OpMulInner,Double], numeric: TF=>NumericOps[TF])
-  : BinaryOp[UnindexedLFMatrix[L,TF],TF,OpMulMatrix,Counter[L, Double]]  = {
-    new BinaryOp[UnindexedLFMatrix[L,TF],TF,OpMulMatrix,Counter[L, Double]] {
+  implicit def ulfMatrixTimesTF[L,TF]
+  (implicit inner: OpMulMatrix.Impl2[ LFMatrix[L, TF], TF, DenseVector[Double]], numeric: TF=>NumericOps[TF])
+  : OpMulMatrix.Impl2[UnindexedLFMatrix[L,TF],TF,Counter[L, Double]]  = {
+    new OpMulMatrix.Impl2[UnindexedLFMatrix[L,TF],TF,Counter[L, Double]] {
 
       def apply(v1: UnindexedLFMatrix[L, TF], v2: TF) = {
         val dv = v1.indexed * v2

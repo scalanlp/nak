@@ -386,7 +386,7 @@ object TableRowWritable extends LowPriorityTableRowWritableImplicits {
  * @author dramage
  */
 trait TableRowCompanion[This,Format] { self =>
-  import breeze.util.CanPack
+  import nak.util.CanPack
   import com.thoughtworks.paranamer.BytecodeReadingParanamer
 
   private val method = try {

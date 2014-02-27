@@ -2,7 +2,7 @@ package nak.inference.bp
 
 import breeze.numerics._
 import breeze.util.Index
-import breeze.linalg.DenseVector
+import breeze.linalg.{softmax, DenseVector}
 
 /**
  * A Factor knows about a set of variables and can
@@ -35,7 +35,7 @@ trait Factor extends nak.inference.Factor[Factor] {
       off += 1
     }
 
-    logSum(scores, off)
+    softmax.array(scores, off)
   }
 
   def isConvergedTo(f: Factor, diff: Double):Boolean = {

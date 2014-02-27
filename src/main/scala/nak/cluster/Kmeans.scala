@@ -153,7 +153,7 @@ object Kmeans {
     * Compute cosine distance: 1-cosine(a,b)
     */ 
   val cosineDistance = (a: Vector[Double], b: Vector[Double]) => {
-    1 - (a dot b)/(norm(a)*norm(b))
+    1 - (a dot b)/(norm(a, 2)*norm(b, 2))
   }
   
   /**
@@ -167,7 +167,7 @@ object Kmeans {
     * Compute euclidean distance (l2 norm).
     */ 
   val euclideanDistance = (a: Vector[Double], b: Vector[Double]) => {
-    norm(a-b)
+    norm(a-b, 2)
   }
 
 }

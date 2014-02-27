@@ -18,14 +18,10 @@ package nak.classify
 
 
 import nak.serialization.DataSerialization.ReadWritable
-import nak.serialization.{SerializationFormat, DataSerialization}
+import nak.serialization.DataSerialization
 import breeze.linalg._
 import breeze.linalg.operators._
-import breeze.math.{MutableCoordinateSpace, TensorSpace, VectorSpace}
-import breeze.linalg.support.{CanCopy, CanZipMapValues, CanNorm, CanCreateZerosLike}
-import breeze.generic.{URFunc, UReduceable, CanMapValues}
-import breeze.util.{Index, MutableIndex}
-import collection.mutable.ArrayBuffer
+import breeze.math.VectorSpace
 
 /**
  * A LinearClassifier is a multi-class classifier with decision
@@ -41,7 +37,7 @@ import collection.mutable.ArrayBuffer
 class LinearClassifier[L,T2, TL, TF]
     (val featureWeights: T2, val intercepts: TL)
     (implicit viewT2 : T2<:<NumericOps[T2], vspace: VectorSpace[TL, Double],
-     mulTensors : BinaryOp[T2,TF,OpMulMatrix,TL],
+     mulTensors : OpMulMatrix.Impl2[T2, TF, TL],
      view: TL <:< QuasiTensor[L, Double]) extends Classifier[L,TF] with Serializable {
   import vspace._
   def scores(o: TF) = {
@@ -56,7 +52,7 @@ class LinearClassifier[L,T2, TL, TF]
 
 object LinearClassifier {
   implicit def linearClassifierReadWritable[L, T2, TL, TF](implicit viewT2 : T2<:<NumericOps[T2], vspace: VectorSpace[TL, Double],
-                                                        mulTensors : BinaryOp[T2,TF,OpMulMatrix,TL],
+                                                           mulTensors : OpMulMatrix.Impl2[T2, TF, TL],
                                                         view: TL <:< Tensor[L, Double],
                                                         tfW: DataSerialization.ReadWritable[T2],
                                                         tlW: DataSerialization.ReadWritable[TL]) = {

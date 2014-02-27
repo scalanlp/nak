@@ -215,8 +215,8 @@ object LogisticClassifierFromCsv {
     // Output full predictions
     if (params.fullOutput) {
       predictions.foreach { prediction => {
-        val pcounter = prediction
-        val distribution = exp(logNormalize(pcounter))
+        val pcounter = logNormalize(prediction:Counter[String, Double])
+        val distribution = exp(pcounter)
         val sortedDistributionString =
           distribution
             .argsort

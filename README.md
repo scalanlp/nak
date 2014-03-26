@@ -10,7 +10,7 @@ Nak currently provides implementations for k-means clustering and supervised lea
 
 See [the Nak wiki](https://github.com/scalanlp/nak/wiki) for (some preliminary and unfortunately sparse) documentation.
 
-The latest stable release of Nak is 1.2.0. Changes from the previous release include:
+The latest stable release of Nak is 1.2.1. Changes from the previous release include:
 
 * breeze-learn pulled into Nak
 * K-means from breeze-learn and Nak merged.
@@ -22,14 +22,14 @@ See the [CHANGELOG](https://github.com/scalanlp/nak/wiki/CHANGELOG) for changes 
 
 In SBT:
 
-    libraryDependencies += "org.scalanlp" % "nak" % "1.2.0"
+    libraryDependencies += "org.scalanlp" % "nak" % "1.2.1"
 
 In Maven:
 
     <dependency>
        <groupId>org.scalanlp</groupId>
        <artifactId>nak</artifactId>
-       <version>1.2.0</version>
+       <version>1.2.1</version>
     </dependency>
 
 

@@ -1,7 +1,7 @@
 package nak.classify
 
 import breeze.util.{Encoder, Index}
-import breeze.linalg.{norm, Counter, DenseVector, NumericOps}
+import breeze.linalg.{norm, Counter, DenseVector, NumericOps, scaleAdd}
 import breeze.linalg.operators._
 import breeze.linalg.support._
 import breeze.generic._
@@ -179,13 +179,13 @@ object LFMatrix {
   }
 
   implicit def lfAxpyOp[L,TF]
-  (implicit op: CanAxpy[Double, TF,TF], numeric: TF=>NumericOps[TF])
-  : CanAxpy[Double, LFMatrix[L,TF],LFMatrix[L,TF]]  = {
-    new CanAxpy[Double, LFMatrix[L,TF],LFMatrix[L,TF]]  {
-      def apply(a: Double, v2: LFMatrix[L,TF], v1: LFMatrix[L, TF]) {
+  (implicit op: scaleAdd.InPlaceImpl3[TF, Double, TF], numeric: TF=>NumericOps[TF])
+  : scaleAdd.InPlaceImpl3[LFMatrix[L,TF], Double, LFMatrix[L,TF]]  = {
+    new scaleAdd.InPlaceImpl3[LFMatrix[L,TF], Double, LFMatrix[L,TF]]  {
+      def apply(v2: LFMatrix[L,TF], a: Double, v1: LFMatrix[L, TF]) {
         require(v2.labelIndex == v1.labelIndex)
         for( (tf, l) <- v1.data.zipWithIndex) {
-          op(a, v2(l),tf)
+          op(v2(l), a, tf)
         }
 
       }

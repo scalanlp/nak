@@ -19,6 +19,7 @@ package nak.stats
 import nak.classify.Classifier
 import nak.data._
 import breeze.linalg._
+import breeze.stats._
 
 import ContingencyStats._
 

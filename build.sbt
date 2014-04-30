@@ -21,8 +21,8 @@ libraryDependencies ++= Seq(
   "org.rogach" %% "scallop" % "0.9.4",
   "com.typesafe" %% "scalalogging-log4j" % "1.0.1",
   "org.apache.logging.log4j" % "log4j-core" % "2.0-beta8",
-  "org.scalacheck" %% "scalacheck" % "1.10.0" % "test",
-  "org.scalatest" %% "scalatest" % "2.0.M5b" % "test"
+  "org.scalacheck" %% "scalacheck" % "1.11.3" % "test",
+  "org.scalatest" %% "scalatest" % "2.1.0" % "test"
 )
 
 publishTo <<= version { v: String =>

@@ -30,10 +30,10 @@ class KMeansTest extends FunSuite {
       IndexedSeq((8.0, 8.0), (8.0, 9.0), (9.0, 8.0), (9.0, 9.0)),
       IndexedSeq((0.0, 8.0), (0.0, 9.0), (1.0, 8.0), (1.0, 9.0))
     ).map(cluster => cluster.map(point => DenseVector(point._1,point._2)))
-    
+
     val points = clusters.flatten
 
-    val kmeans = new Kmeans[DenseVector[Double]](points)
+    val kmeans = new Kmeans[DenseVector[Double]](points, fixedSeedForRandom=true)
     val (dispersion, centroids) = kmeans.run(3,25)
     assert(closeTo(dispersion,6.0))
     val IndexedSeq(a, b, c) = centroids.sortWith{ (a,b) =>
@@ -56,12 +56,12 @@ class KMeansTest extends FunSuite {
         new SparseVector(Array(point._1,point._3), Array(point._2, point._4), 3)(breeze.storage.DefaultArrayValue(0.0))
       }
     }
-    
+
     val points = clusters.flatten
 
-    val kmeans = new Kmeans[SparseVector[Double]](points)
+    val kmeans = new Kmeans[SparseVector[Double]](points, fixedSeedForRandom=true)
     val (dispersion, centroids) = kmeans.run(3,25)
-    
+
     assert(closeTo(dispersion,175.05))
     val IndexedSeq(a, b, c) = centroids.sortWith{ (a,b) =>
       if (a(0) < b(0)) true
@@ -69,7 +69,7 @@ class KMeansTest extends FunSuite {
       else if (a(1) < b(1)) true
       else a(2) > b(2)
     }
-    
+
     assert((SparseVector(Array(0.25,0.25,1.25))) === a)
     assert((SparseVector(Array(2.6666666666666665,8.333333333333334,2.6666666666666665))) === b)
     assert((SparseVector(Array(3.6,0.2,8.8))) === c)

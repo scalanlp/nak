@@ -6,8 +6,6 @@ organization := "org.scalanlp"
 
 scalaVersion := "2.10.3"
 
-retrieveManaged := true
-
 crossScalaVersions  := Seq("2.11.0", "2.10.3")
 
 resolvers ++= Seq(
@@ -21,7 +19,7 @@ libraryDependencies ++= Seq(
   "org.scalanlp" %% "breeze-config" % "0.8",
   "org.rogach" %% "scallop" % "0.9.4",
   "com.typesafe" %% "scalalogging-log4j" % "1.0.1",
-  "org.apache.logging.log4j" % "log4j-core" % "2.0-beta8",
+  "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",
   "org.scalacheck" %% "scalacheck" % "1.10.0" % "test",
   "org.scalatest" %% "scalatest" % "2.0.M5b" % "test"
 )

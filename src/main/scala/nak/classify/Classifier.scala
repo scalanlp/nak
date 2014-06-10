@@ -1,4 +1,4 @@
-package nak.classify;
+package nak.classify
 
 /*
  Copyright 2009 David Hall, Daniel Ramage
@@ -23,29 +23,30 @@ import breeze.linalg._
 /**
  * Represents a classifier from observations of type T to labels of type L.
  * Implementers should only need to implement score.
- * 
+ *
  * @author dlwh
  */
-trait Classifier[L,-T] extends (T=>L) { outer =>
+trait Classifier[L, -T] extends (T => L) {  outer =>
   /** Return the most likely label */
-  def apply(o :T) = classify(o);
-  /** Return the most likely label */
-  def classify(o :T) = scores(o).argmax;
+  def apply(o: T) = classify(o)
 
-  /** For the observation, return the score for each label that has a nonzero 
-   *  score. 
-   */
-  def scores(o: T): Counter[L,Double]
+  /** Return the most likely label */
+  def classify(o: T) = argmax(scores(o))
+
+  /** For the observation, return the score for each label that has a nonzero
+    * score.
+    */
+  def scores(o: T): Counter[L, Double]
 
   /**
    * Transforms output labels L=>M. if f(x) is not one-to-one then the max of score
    * from the L's are used.
    */
-  def map[M](f: L=>M):Classifier[M,T] = new Classifier[M,T] {
-    def scores(o: T): Counter[M,Double] = {
-      val ctr = Counter[M,Double]()
+  def map[M](f: L => M): Classifier[M, T] = new Classifier[M, T] {
+    def scores(o: T): Counter[M, Double] = {
+      val ctr = Counter[M, Double]()
       val otherCtr = outer.scores(o)
-      for( x <- otherCtr.keysIterator) {
+      for (x <- otherCtr.keysIterator) {
         val y = f(x)
         ctr(y) = ctr(y) max otherCtr(x)
       }
@@ -54,9 +55,14 @@ trait Classifier[L,-T] extends (T=>L) { outer =>
   }
 }
 
+
+
 object Classifier {
-  trait Trainer[L,T] {
-    type MyClassifier <: Classifier[L,T]
-    def train(data: Iterable[Example[L,T]]):MyClassifier;
+
+  trait Trainer[L, T] {
+    type MyClassifier <: Classifier[L, T]
+
+    def train(data: Iterable[Example[L, T]]): MyClassifier;
   }
+
 }

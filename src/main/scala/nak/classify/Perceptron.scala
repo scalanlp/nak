@@ -2,7 +2,7 @@ package nak.classify
 
 import nak.data.Example
 import breeze.math.MutableInnerProductSpace
-import breeze.linalg.Counter
+import breeze.linalg.{SparseVector, Counter}
 import breeze.util.Index
 import scala.reflect.ClassTag
 
@@ -17,9 +17,9 @@ object Perceptron {
       val weights = new LFMatrix[L,T](zeros(data.head.features), labelIndex)
       weights(data.head.label); // seed with one label
       import LFMatrix._
-      val result:MyClassifier = new LinearClassifier(weights.unindexed,Counter[L,Double]())
+      val result:MyClassifier = new LinearClassifier[L, UnindexedLFMatrix[L, T], Counter[L, Double], T](weights.unindexed,Counter[L,Double]())
       for( i <- 0 until maxPasses;  ex <- data) {
-        val l = ex.label
+        val l: L = ex.label
         val feats = ex.features
         val ctr = result.scores(feats)
         if(ctr.size == 0 || ctr.argmax != l) {
@@ -29,9 +29,7 @@ object Perceptron {
           }
         }
       }
-
       result
-
     }
   }
 }

@@ -2,7 +2,7 @@
 
 Nak is a Scala/Java library for machine learning and related tasks, with a focus on having an easy to use API for some standard algorithms. It is formed from [Breeze](https://github.com/scalanlp/breeze), [Liblinear Java](http://liblinear.bwaldvogel.de/), and [Scalabha](https://github.com/utcompling/Scalabha). It is currently undergoing a pretty massive evolution, so be prepared for quite big changes in the API for this and probably several future versions.
 
-We'd love to have some more contributors: if you are interested in helping out, please see [the #helpwanted issues](https://github.com/scalanlp/nak/issues/search?q=%23helpwanted) or suggest your own ideas.
+We'd love to have some more contributors: if you are interested in helping out, please see [the #helpwanted issues](https://github.com/scalanlp/nak/search?q=%23helpwanted&type=Issues) or suggest your own ideas.
 
 ## What's inside
 

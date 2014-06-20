@@ -14,7 +14,6 @@ import breeze.collection.mutable.Beam
  *
  *
  */
-//(implicit dm: UImpl2[L, T, T, Double])
 class kNearestNeighbor[L, T, D](c: Iterable[Example[L, T]],
                                 k: Int = 1)(implicit dm: UImpl2[D, T, T, Double]) extends Classifier[L, T] {
 
@@ -49,8 +48,8 @@ class kNearestNeighbor[L, T, D](c: Iterable[Example[L, T]],
 }
 
 object kNearestNeighbor {
-//(implicit dm: UImpl2[D, T, T, Double])
-  class Trainer[L, T, D](k: Int = 1) extends Classifier.Trainer[L, T] {
+
+  class Trainer[L, T, D](k: Int = 1)(implicit dm: UImpl2[D, T, T, Double]) extends Classifier.Trainer[L, T] {
     type MyClassifier = kNearestNeighbor[L, T, D]
 
     override def train(data: Iterable[Example[L, T]]): MyClassifier = new kNearestNeighbor[L, T, D](data, k)

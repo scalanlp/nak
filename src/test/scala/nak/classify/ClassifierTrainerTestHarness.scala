@@ -1,7 +1,8 @@
 package nak.classify
 
+import nak.space.dm.DMImplicits.euclidean
 import org.scalatest.FunSuite
-import nak.data.{DataMatrix, Example}
+import nak.data.{Datasets, DataMatrix, Example}
 import nak.stats.ContingencyStats
 import breeze.linalg._
 
@@ -37,19 +38,39 @@ trait ContinuousTestHarness extends ClassifierTrainerTestHarness {
   }
 }
 
+trait NearestNeighborTestHarness extends FunSuite {
+  def trainer[L]: Classifier.Trainer[L,DenseVector[Double]]
+
+  test("iris-LOO") {
+    type DS = IndexedSeq[Example[String,DenseVector[Double]]]
+    val testLOO: (DS,DS) => Boolean = (train: DS, test: DS) => {
+      val nnC = new kNearestNeighbor.Trainer[String,DenseVector[Double],euclidean.type](3).train(train)
+      nnC.classify(test.head.features) == test.head.label
+    }
+    val looCV = Datasets.loocv[Example[String,DenseVector[Double]]](IrisData.classification.toIndexedSeq)
+    val res = looCV[Boolean](testLOO)
+    assert(res.count(identity).toDouble / res.size > 0.90)
+  }
+}
+
 // Data from Bishop
 object PRMLData {
   val classification = {
     val url = PRMLData.getClass().getClassLoader().getResource("data/classify/prml")
-    val datamatrix = DataMatrix.fromURL(url,3)
+    val datamatrix = DataMatrix.fromURL[Int](url,3, labelReader = _.toDouble.toInt)
     datamatrix.rows.map { ex =>
       ex.map{row =>
         val r = Counter[Int,Double]()
-        for( (v,k) <- row.zipWithIndex) {
-          r(k) = v
-        }
+        row.foreachKey(k => r(k) = row(k))
         r
-      }.relabel(_.toInt)
+      }
     }
+  }
+}
+
+object IrisData {
+  val classification = {
+    val url = IrisData.getClass.getClassLoader.getResource("data/classify/iris.data")
+    DataMatrix.fromURL[String](url,4,separator = ",").rows
   }
 }

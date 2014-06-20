@@ -1,17 +1,16 @@
 package nak.util
 
+import scala.util.Random
+
 /**
   * A Locality Sensitive Hash that hashes the documents into buckets.
   * Only Jaccard Similarity is currently supported.
   *
   * @constructor : create a new instance
-  * @param : shingleLength. Default value  = 3, 
-  * @param : minHashLengh. The default value is = 100
-  * @param : numBands. The Default value is 10.
-  * @param : processedDocuments - which is a Tuple of (document , document index) The processed document can normalize the document by having just 
-  * one space between words and converting all characters to lower case.
-  * @param : threshold The default value for threshold is 0.8. 
-  * 
+  * @param shingleLength. Default value  = 3,
+  * @param numBands. The Default value is 10.
+  * @param documents Iterable of String documents.
+  * @param numRows. Default is 100
   * The parameters numBands, threshold may be may be set so that
   * threshold is approximately equal to  (1/numBands)^(1/rows per band).
  **/
@@ -130,8 +129,8 @@ object HashFunction {
   /** Get a sequence of random hash functions of the form mx+b. **/
   def randomLinearHashFunctions(n: Int) = {
     val functions = (0 until n).par.map { _=>
-      val slope = util.Random.nextInt(1000)
-      val const = util.Random.nextInt(1000)
+      val slope = Random.nextInt(1000)
+      val const = Random.nextInt(1000)
       new LinearHashFunction(slope, const)
     }
     functions.seq

@@ -130,8 +130,8 @@ object SVM {
   def main(args: Array[String]) {
     import nak.data._
 
-    val data = DataMatrix.fromURL(new java.net.URL("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/spam.data"),-1,dropRow = true)
-    var vectors = data.rows.map(e => e map ((a:Seq[Double]) => DenseVector(a:_*)) relabel (_.toInt))
+    val data = DataMatrix.fromURL(new java.net.URL("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/spam.data"),-1,dropRow = true, labelReader = _.toInt)
+    var vectors = data.rows
     vectors = vectors.map { _.map { v2 => v2 / norm(v2,2) }}
     vectors = Rand.permutation(vectors.length).draw.map(vectors) take 10
 

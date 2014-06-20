@@ -1,10 +1,14 @@
 package nak.util
 
-class GrowableIndex[T] extends (T=>Int) {
+import scala.collection.mutable
+
+class GrowableIndex[T] extends (T => Int) {
+
   import collection.mutable
 
   var nextIndex = 0
-  val mapping = mutable.HashMap[T,Int]()
+  val mapping   = mutable.HashMap[T, Int]()
+
   def apply(element: T): Int = {
     if (mapping.isDefinedAt(element))
       mapping(element)
@@ -15,7 +19,8 @@ class GrowableIndex[T] extends (T=>Int) {
       idx
     }
   }
+
   def toMap = mapping.toMap
+
   def size = nextIndex
 }
-

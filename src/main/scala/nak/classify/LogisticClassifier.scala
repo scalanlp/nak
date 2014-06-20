@@ -35,8 +35,8 @@ object LogisticClassifier {
 
 
   def main(args: Array[String]) {
-    val data = DataMatrix.fromURL(new java.net.URL("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/spam.data"),-1)
-    val vectors = data.rows.map(e => e map ((a:Seq[Double]) => new DenseVector(a.toArray)) relabel (_.toInt))
+    val data = DataMatrix.fromURL[Int](new java.net.URL("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/spam.data"),-1, labelReader = _.toInt)
+    val vectors = data.rows
 
     val classifier = new LogisticClassifier.Trainer[Int,DenseVector[Double]].train(vectors)
     for( ex <- vectors) {

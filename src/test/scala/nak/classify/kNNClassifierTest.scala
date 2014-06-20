@@ -18,5 +18,5 @@ import org.scalatest.junit.JUnitRunner
 class kNNClassifierTest
   extends NearestNeighborTestHarness {
   def trainer[L]: Trainer[L, DenseVector[Double]] =
-    new kNearestNeighbor.Trainer[L, DenseVector[Double], euclidean.type](3)
+    new kNearestNeighbor.Trainer[L, DenseVector[Double], euclidean](3)
 }

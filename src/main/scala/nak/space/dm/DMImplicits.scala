@@ -34,6 +34,13 @@ import breeze.numerics._
  */
 object DMImplicits {
 
+  type chebyshev = chebyshev.type
+  type cosine = cosine.type
+  type euclidean = euclidean.type
+  type mahalanobis = mahalanobis.type
+  type manhattan = manhattan.type
+  type minkowski = minkowski.type
+
   object chebyshev extends UFunc {
     implicit def chebyshevDistanceFromZippedValues[T, U]
     (implicit zipImpl: zipValues.Impl2[T, U, ZippedValues[Double, Double]]): Impl2[T, U, Double] =

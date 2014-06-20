@@ -2,6 +2,7 @@ package nak.classify
 
 import nak.data.Example
 import breeze.generic.UFunc.UImpl2
+import scala.collection.mutable
 import breeze.storage.DefaultArrayValue
 import breeze.linalg._
 import breeze.collection.mutable.Beam
@@ -14,36 +15,45 @@ import breeze.collection.mutable.Beam
  *
  */
 //(implicit dm: UImpl2[L, T, T, Double])
-class kNearestNeighbor[L, T,D](c: Iterable[Example[L, T]],
-                             k: Int = 1)(implicit dm: UImpl2[D, T, T, Double]) extends Classifier[L, T] {
-  /** For the observation, return the score for each label that has a nonzero
-    * score.
-    *
-    * TODO: Think about how to implement this well (BPQ implementation)
-    * TODO: Think about how scores should be represented. (Currently overloads assumed
-    *       probability distribution return value as distances, but could possibly
-    *       formulate as prob distribution over examples as seen in NCA paper
-    *       or make up some probability distribution over the labels contained in the
-    *       nearest neighbor set, where prob is inversely prop. to distance.to nearest label.
+class kNearestNeighbor[L, T, D](c: Iterable[Example[L, T]],
+                                k: Int = 1)(implicit dm: UImpl2[D, T, T, Double]) extends Classifier[L, T] {
+
+
+  // Iterable of (example, distance) tuples
+  type DistanceResult = Iterable[(Example[L,T],Double)]
+
+  /*
+   * Additional method to extract distances of k nearest neighbors
+   */
+  def distances(o: T): DistanceResult = {
+    val beam = Beam[(Example[L,T], Double)](k)(Ordering.by(-(_: (_, Double))._2))
+    beam ++= c.map(e => (e, dm(e.features, o)))
+  }
+
+  /** For the observation, return the max voting label with prob = 1.0
     */
   override def scores(o: T): Counter[L, Double] = {
-    val pq = Beam[(L, Double)](k)(Ordering.by((_: (_, Double))._2))
-    pq ++ c.map(e => (e.label, dm(e.features, o)))
-    implicit val default = DefaultArrayValue[Double](Double.PositiveInfinity)
-    pq.foldLeft(Counter[L, Double]())((minAcc: Counter[L, Double], next: (L, Double)) =>
-    if (next._2 < minAcc(next._1)) {
-      minAcc.update(next._1, next._2)
-      minAcc
-    } else minAcc)
+    // Beam reverses ordering from min heap to max heap, but we want min heap
+    // since we are tracking distances, not scores.
+    val beam = Beam[(L, Double)](k)(Ordering.by(-(_: (_, Double))._2))
+
+    // Add all examples to beam, tracking label and distance from testing point
+    beam ++= c.map(e => (e.label, dm(e.features, o)))
+
+    // Max voting classification rule
+    val predicted = beam.groupBy(_._1).maxBy(_._2.size)._1
+
+    // Degenerate discrete distribution with prob = 1.0 at predicted label
+    Counter((predicted, 1.0))
   }
 }
 
 object kNearestNeighbor {
+//(implicit dm: UImpl2[D, T, T, Double])
+  class Trainer[L, T, D](k: Int = 1) extends Classifier.Trainer[L, T] {
+    type MyClassifier = kNearestNeighbor[L, T, D]
 
-  class Trainer[L, T, D](k: Int = 1)(implicit dm: UImpl2[D, T, T, Double]) extends Classifier.Trainer[L, T] {
-    type MyClassifier = kNearestNeighbor[L, T,D]
-
-    override def train(data: Iterable[Example[L, T]]): MyClassifier = new kNearestNeighbor[L,T,D](data, k)
+    override def train(data: Iterable[Example[L, T]]): MyClassifier = new kNearestNeighbor[L, T, D](data, k)
   }
 
 }

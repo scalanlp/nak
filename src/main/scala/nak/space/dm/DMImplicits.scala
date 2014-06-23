@@ -23,6 +23,8 @@ package nak.space.dm
 
 import breeze.generic.UFunc
 import breeze.linalg._
+import breeze.linalg.operators.OpMulMatrix
+import breeze.math.MutableInnerProductSpace
 import breeze.numerics._
 
 /**
@@ -94,6 +96,29 @@ object DMImplicits {
       }
   }
 
+
+  object decomposedMahalanobis extends UFunc {
+    //    implicit def decomposedMahalanobisFromLinearTransformationMatrix[T]
+    //    (implicit vspace: MutableInnerProductSpace[T,Double],
+    //      ev: T <:< Vector[Double]): Impl3[T,T,DenseMatrix[Double],Double] = {
+    //      import vspace._
+    //      new Impl3[T, T, DenseMatrix[Double], Double] {
+    //        def apply(v: T, v2: T, A: DenseMatrix[Double]): Double = {
+    //          ((A * v) - (A * v2)).t * ((A * v) - (A * v2))
+    //        }
+    //      }
+    //    }
+    implicit def decomposedMahalanobisFromLinearTransformationMatrix(implicit vspace: MutableInnerProductSpace[DenseVector[Double], Double]):
+      Impl3[DenseVector[Double], DenseVector[Double], DenseMatrix[Double], Double] = {
+      import vspace._
+      new Impl3[DenseVector[Double], DenseVector[Double], DenseMatrix[Double], Double] {
+        def apply(v: DenseVector[Double], v2: DenseVector[Double], A: DenseMatrix[Double]): Double = {
+          ((A * v) - (A * v2)).t * ((A * v) - (A * v2))
+        }
+      }
+    }
+  }
+
   object mahalanobis extends UFunc {
     def requireSymmetricMatrix[V](mat: Matrix[V]): Unit = {
       if (mat.rows != mat.cols)
@@ -145,12 +170,13 @@ object DMImplicits {
       new Impl3[T, U, Double, Double] {
         def apply(v: T, v2: U, v3: Double): Double = {
           var cumul = 0.0
-          zipValues(v,v2).foreach {
-            (a,b) =>
-              cumul += pow(abs(a - b),v3)
+          zipValues(v, v2).foreach {
+            (a, b) =>
+              cumul += pow(abs(a - b), v3)
           }
-          pow(cumul,1/v3)
+          pow(cumul, 1 / v3)
         }
       }
   }
+
 }

@@ -21,6 +21,17 @@ class kNearestNeighbor[L, T, D](c: Iterable[Example[L, T]],
   // Iterable of (example, distance) tuples
   type DistanceResult = Iterable[(Example[L,T],Double)]
 
+  def testLOO(): Double = {
+    val indexedExamples = c.zipWithIndex
+    indexedExamples.map({case (ex,i) =>
+      val beam = Beam[(L, Double)](k)(Ordering.by(-(_: (_, Double))._2))
+      beam ++= indexedExamples.
+               withFilter(_._2 != i).
+               map({ case (e,j) => (e.label, dm(e.features, ex.features))})
+      beam.groupBy(_._1).maxBy(_._2.size)._1 == ex.label
+    }).count(identity).toDouble / c.size
+  }
+
   /*
    * Additional method to extract distances of k nearest neighbors
    */

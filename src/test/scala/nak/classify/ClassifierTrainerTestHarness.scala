@@ -43,8 +43,11 @@ trait NearestNeighborTestHarness extends FunSuite {
 
   test("iris-LOO") {
     type DS = IndexedSeq[Example[String,DenseVector[Double]]]
+    var i = 1
     val testLOO: (DS,DS) => Boolean = (train: DS, test: DS) => {
-      val nnC = new kNearestNeighbor.Trainer[String,DenseVector[Double],euclidean.type](3).train(train)
+      println(s"Running [$i/${IrisData.size}]")
+      i += 1
+      val nnC = trainer.train(train)
       nnC.classify(test.head.features) == test.head.label
     }
     val looCV = Datasets.loocv[Example[String,DenseVector[Double]]](IrisData.classification.toIndexedSeq)
@@ -73,4 +76,5 @@ object IrisData {
     val url = IrisData.getClass.getClassLoader.getResource("data/classify/iris.data")
     DataMatrix.fromURL[String](url,4,separator = ",").rows
   }
+  val size = classification.size
 }

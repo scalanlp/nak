@@ -3,7 +3,7 @@ package nak.classify
 
 import breeze.linalg.DenseVector
 import nak.classify.Classifier.Trainer
-import nak.classify.DenseInitializers.ScaledDiagInitializer
+import nak.classify.DenseInitializers.ScaledDiagDenseInitializer
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -18,5 +18,5 @@ import org.scalatest.junit.JUnitRunner
 class NCAClassifierTest
   extends NearestNeighborTestHarness {
   def trainer[L]: Trainer[L, DenseVector[Double]] =
-    new NCA.DenseTrainerSGD[L]() with ScaledDiagInitializer[L]
+    new NCA.DenseTrainerSGD[L]() with ScaledDiagDenseInitializer[L]
 }

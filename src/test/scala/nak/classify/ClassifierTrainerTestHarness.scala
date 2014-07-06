@@ -1,6 +1,7 @@
 package nak.classify
 
-import nak.space.dm.DMImplicits.euclidean
+import nak.space.DMImplicits
+import DMImplicits.euclidean
 import org.scalatest.FunSuite
 import nak.data.{Datasets, DataMatrix, Example}
 import nak.stats.ContingencyStats

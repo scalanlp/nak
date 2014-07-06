@@ -3,7 +3,8 @@ package nak.classify
 
 import breeze.linalg.DenseVector
 import nak.classify.Classifier.Trainer
-import nak.space.dm.DMImplicits.euclidean
+import nak.space.DMImplicits
+import DMImplicits.euclidean
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 

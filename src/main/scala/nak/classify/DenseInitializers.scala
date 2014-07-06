@@ -12,25 +12,25 @@ import nak.data.Example
  *
  */
 object DenseInitializers {
-  trait Initializer[L,U] {
+  trait DenseInitializer[L,U] {
     def init(data: Iterable[Example[L, DenseVector[Double]]]): U
   }
 
-  trait RandInitializer[L] extends Initializer[L, DenseMatrix[Double]] {
+  trait RandDenseInitializer[L] extends DenseInitializer[L, DenseMatrix[Double]] {
     override def init(data: Iterable[Example[L, DenseVector[Double]]]): DenseMatrix[Double] = {
       val fSize = data.head.features.length
       DenseMatrix.rand[Double](fSize, fSize) / 50.0
     }
   }
 
-  trait ZeroInitializer[L] extends Initializer[L, DenseMatrix[Double]] {
+  trait ZeroDenseInitializer[L] extends DenseInitializer[L, DenseMatrix[Double]] {
     override def init(data: Iterable[Example[L, DenseVector[Double]]]): DenseMatrix[Double] = {
       val fSize = data.head.features.length
       DenseMatrix.zeros[Double](fSize, fSize)
     }
   }
 
-  trait ScaledDiagInitializer[L] extends Initializer[L, DenseMatrix[Double]] {
+  trait ScaledDiagDenseInitializer[L] extends DenseInitializer[L, DenseMatrix[Double]] {
     override def init(data: Iterable[Example[L, DenseVector[Double]]]): DenseMatrix[Double] = {
       val fSize = data.head.features.length
       val scaleDiffs = data.map(_.features.toScalaVector())

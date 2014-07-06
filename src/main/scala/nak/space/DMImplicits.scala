@@ -19,11 +19,11 @@
  * along with dialogue.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nak.space.dm
+package nak.space
 
 import breeze.generic.UFunc
 import breeze.linalg._
-import breeze.linalg.operators.OpMulMatrix
+import breeze.linalg.operators.{OpMulMatrix, OpSub}
 import breeze.math.MutableInnerProductSpace
 import breeze.numerics._
 
@@ -42,6 +42,18 @@ object DMImplicits {
   type mahalanobis = mahalanobis.type
   type manhattan = manhattan.type
   type minkowski = minkowski.type
+  type projectedSquaredNorm = projectedSquaredNorm.type
+
+  object projectedSquaredNorm extends UFunc {
+    implicit def pSqNorm[T, U](implicit mulImpl: OpMulMatrix.Impl2[U, T, T],
+                               subImpl: OpSub.Impl2[T, T, T],
+                               normImpl: norm.Impl[T, Double]): Impl3[T, T, U, Double] =
+      new Impl3[T, T, U, Double] {
+        def apply(v: T, v2: T, proj: U): Double = {
+          pow(norm(subImpl(mulImpl(proj, v), mulImpl(proj, v2))), 2)
+        }
+      }
+  }
 
   object chebyshev extends UFunc {
     implicit def chebyshevDistanceFromZippedValues[T, U]
@@ -108,12 +120,22 @@ object DMImplicits {
     //        }
     //      }
     //    }
-    implicit def decomposedMahalanobisFromLinearTransformationMatrix(implicit vspace: MutableInnerProductSpace[DenseVector[Double], Double]):
-      Impl3[DenseVector[Double], DenseVector[Double], DenseMatrix[Double], Double] = {
+    implicit def decomposedMahalanobisFromLinearTransformationDense(implicit vspace: MutableInnerProductSpace[DenseVector[Double], Double]):
+    Impl3[DenseVector[Double], DenseVector[Double], DenseMatrix[Double], Double] = {
       import vspace._
       new Impl3[DenseVector[Double], DenseVector[Double], DenseMatrix[Double], Double] {
         def apply(v: DenseVector[Double], v2: DenseVector[Double], A: DenseMatrix[Double]): Double = {
-          ((A * v) - (A * v2)).t * ((A * v) - (A * v2))
+          ((A * v) - (A * v2)) dot ((A * v) - (A * v2))
+        }
+      }
+    }
+
+    implicit def decomposedMahalanobisFromLinearTransformationSparse(implicit vspace: MutableInnerProductSpace[SparseVector[Double], Double]):
+    Impl3[SparseVector[Double], SparseVector[Double], CSCMatrix[Double], Double] = {
+      import vspace._
+      new Impl3[SparseVector[Double], SparseVector[Double], CSCMatrix[Double], Double] {
+        def apply(v: SparseVector[Double], v2: SparseVector[Double], A: CSCMatrix[Double]): Double = {
+          ((A * v) - (A * v2)) dot ((A * v) - (A * v2))
         }
       }
     }

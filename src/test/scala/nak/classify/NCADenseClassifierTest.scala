@@ -15,8 +15,9 @@ import org.scalatest.junit.JUnitRunner
  *
  */
 @RunWith(classOf[JUnitRunner])
-class NCAClassifierTest
-  extends NearestNeighborTestHarness {
+class NCADenseClassifierTest
+  extends DenseNearestNeighborTestHarness {
   def trainer[L]: Trainer[L, DenseVector[Double]] =
-    new NCA.DenseTrainerSGD[L]() with ScaledDiagDenseInitializer[L]
+    new NCA.DenseTrainer[L]() with ScaledDiagDenseInitializer[L]
 }
+

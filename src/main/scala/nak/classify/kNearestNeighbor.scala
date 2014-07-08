@@ -3,7 +3,7 @@ package nak.classify
 import nak.data.Example
 import breeze.generic.UFunc.UImpl2
 import scala.collection.mutable
-import breeze.storage.DefaultArrayValue
+import breeze.storage.Zero
 import breeze.linalg._
 import breeze.collection.mutable.Beam
 

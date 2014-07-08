@@ -21,7 +21,7 @@ import scala.collection.generic.{GenericCompanion, MapFactory}
 import scala.collection.mutable.{ArrayBuilder,Builder};
 
 import breeze.util.Index
-import breeze.storage.DefaultArrayValue
+import breeze.storage.Zero
 import breeze.linalg.{Counter2, Counter}
 import breeze.math.Field
 import scala.reflect.ClassTag
@@ -325,7 +325,7 @@ object SerializationFormat {
         writeIterable[T,Iterable[T]](sink, value, "Index");
     }
 
-    implicit def counterReadWritable[T:ReadWritable, V:ReadWritable:DefaultArrayValue:Field]: ReadWritable[Counter[T,V]] = new ReadWritable[Counter[T,V]] {
+    implicit def counterReadWritable[T:ReadWritable, V:ReadWritable:Zero:Field]: ReadWritable[Counter[T,V]] = new ReadWritable[Counter[T,V]] {
       def write(sink: Output, ctr: Counter[T,V]) = {
         writeIterable[(T,V),Iterable[(T,V)]](sink, new Iterable[(T,V)] {
           def iterator = ctr.iterator
@@ -339,7 +339,7 @@ object SerializationFormat {
       }
     }
 
-    implicit def counter2ReadWritable[T:ReadWritable, U:ReadWritable, V:ReadWritable:DefaultArrayValue:Field]: ReadWritable[Counter2[T,U,V]] = {
+    implicit def counter2ReadWritable[T:ReadWritable, U:ReadWritable, V:ReadWritable:Zero:Field]: ReadWritable[Counter2[T,U,V]] = {
       new ReadWritable[Counter2[T,U,V]] {
         def write(sink: Output, ctr: Counter2[T,U,V]) = {
           writeIterable[((T,U),V),Iterable[((T,U),V)]](sink, new Iterable[((T,U),V)] {

@@ -23,9 +23,11 @@ package nak.space
 
 import breeze.generic.UFunc
 import breeze.linalg._
-import breeze.linalg.operators.{OpMulMatrix, OpSub}
-import breeze.math.MutableInnerProductSpace
+import breeze.linalg.operators.{OpMulInner, OpMulMatrix, OpSub}
+import breeze.math.{Semiring, MutableInnerProductSpace}
 import breeze.numerics._
+
+import scala.reflect.ClassTag
 
 /**
  * dialogue
@@ -125,7 +127,25 @@ object DMImplicits {
       import vspace._
       new Impl3[DenseVector[Double], DenseVector[Double], DenseMatrix[Double], Double] {
         def apply(v: DenseVector[Double], v2: DenseVector[Double], A: DenseMatrix[Double]): Double = {
-          ((A * v) - (A * v2)) dot ((A * v) - (A * v2))
+          val c: DenseVector[Double] = (A * v) - (A * v2)
+          c dot c
+        }
+      }
+    }
+
+    implicit def decomposedMahalanobisFromLinTransGen[V, M, T](implicit vspace: MutableInnerProductSpace[V, T],
+                                                               opMulMV: OpMulMatrix.Impl2[M, V, V],
+                                                               opSubVV: OpSub.Impl2[V, V, V],
+                                                               opDotVV: OpMulInner.Impl2[V, V, T],
+                                                               // viewM: M <:< Matrix[T],
+                                                               // viewV: V <:< Vector[T],
+                                                               semiring: Semiring[T],
+                                                               man: ClassTag[T]): Impl3[V, V, M, T] = {
+      //      import vspace._
+      new Impl3[V, V, M, T] {
+        def apply(v: V, v2: V, A: M): T = {
+          val c: V = opSubVV(opMulMV(A, v), opMulMV(A, v2))
+          opDotVV(c,c)
         }
       }
     }
@@ -135,7 +155,8 @@ object DMImplicits {
       import vspace._
       new Impl3[SparseVector[Double], SparseVector[Double], CSCMatrix[Double], Double] {
         def apply(v: SparseVector[Double], v2: SparseVector[Double], A: CSCMatrix[Double]): Double = {
-          ((A * v) - (A * v2)) dot ((A * v) - (A * v2))
+          val c = (A * v) - (A * v2)
+          c dot c
         }
       }
     }

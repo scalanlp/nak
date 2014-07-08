@@ -7,6 +7,9 @@ import nak.data.{Datasets, DataMatrix, Example}
 import nak.stats.ContingencyStats
 import breeze.linalg._
 
+import scala.reflect.runtime.universe._
+import scala.util.Random
+
 /**
  * 
  * @author dlwh
@@ -39,21 +42,41 @@ trait ContinuousTestHarness extends ClassifierTrainerTestHarness {
   }
 }
 
-trait NearestNeighborTestHarness extends FunSuite {
+trait DenseNearestNeighborTestHarness extends FunSuite {
   def trainer[L]: Classifier.Trainer[L,DenseVector[Double]]
 
-  test("iris-LOO") {
+  test("iris-CV") {
     type DS = IndexedSeq[Example[String,DenseVector[Double]]]
     var i = 1
-    val testLOO: (DS,DS) => Boolean = (train: DS, test: DS) => {
-      println(s"Running [$i/${IrisData.size}]")
+    val k = 3
+    val testCV: (DS,DS) => Double = (train: DS, test: DS) => {
       i += 1
       val nnC = trainer.train(train)
-      nnC.classify(test.head.features) == test.head.label
+      test.foldLeft(0)({case (iSum,ex) =>
+        if (nnC.classify(ex.features) == ex.label) iSum + 1 else iSum}).toDouble / test.size
     }
-    val looCV = Datasets.loocv[Example[String,DenseVector[Double]]](IrisData.classification.toIndexedSeq)
-    val res = looCV[Boolean](testLOO)
-    assert(res.count(identity).toDouble / res.size > 0.90)
+    val r = new Random(1)
+    val crossV = Datasets.crossValidate[Example[String,DenseVector[Double]],Double](k,r.shuffle(IrisData.denseClassification.toIndexedSeq))(testCV)
+    assert(!crossV.exists(_ < 0.90))
+  }
+}
+
+trait SparseNearestNeighborTestHarness extends FunSuite {
+  def trainer[L]: Classifier.Trainer[L,SparseVector[Double]]
+
+  test("iris-CV") {
+    type DS = IndexedSeq[Example[String,SparseVector[Double]]]
+    var i = 1
+    val k = 3
+    val testCV: (DS,DS) => Double = (train: DS, test: DS) => {
+      i += 1
+      val nnC = trainer.train(train)
+      test.foldLeft(0)({case (iSum,ex) =>
+        if (nnC.classify(ex.features) == ex.label) iSum + 1 else iSum}).toDouble / test.size
+    }
+    val r = new Random(1)
+    val crossV = Datasets.crossValidate[Example[String,SparseVector[Double]],Double](k,r.shuffle(IrisData.sparseClassification.toIndexedSeq))(testCV)
+    assert(!crossV.exists(_ < 0.90))
   }
 }
 
@@ -73,9 +96,13 @@ object PRMLData {
 }
 
 object IrisData {
-  val classification = {
-    val url = IrisData.getClass.getClassLoader.getResource("data/classify/iris.data")
-    DataMatrix.fromURL[String](url,4,separator = ",").rows
-  }
-  val size = classification.size
+  val url = IrisData.getClass.getClassLoader.getResource("data/classify/iris.data")
+  val dm = DataMatrix.fromURL[String](url,4,separator = ",")
+
+  def sparseClassification: Seq[Example[String,SparseVector[Double]]] =
+    dm.rows.map(e => e.map(f => SparseVector(f.data)))
+
+  def denseClassification: Seq[Example[String,DenseVector[Double]]] = dm.rows
+
+  val size = dm.rows.size
 }

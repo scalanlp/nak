@@ -1,6 +1,8 @@
 package nak.space.nca
 
 import breeze.linalg._
+import breeze.linalg.operators.OpMulMatrix
+import breeze.math.{TensorSpace, Semiring, MutableInnerProductSpace}
 import breeze.numerics._
 import breeze.optimize.{BatchDiffFunction, StochasticDiffFunction}
 import breeze.util.Isomorphism
@@ -17,7 +19,6 @@ import scala.reflect.ClassTag
  */
 object NCAObjectives {
 
-reverse
   class Iso_DM_DV(r: Int, c: Int) extends Isomorphism[DenseMatrix[Double], DenseVector[Double]] {
     override def forward(t: DenseMatrix[Double]): DenseVector[Double] = t.flatten()
 
@@ -26,9 +27,94 @@ reverse
 
   class Iso_CSC_SV(r: Int, c: Int) extends Isomorphism[CSCMatrix[Double], SparseVector[Double]] {
 
-    override def forward(t: CSCMatrix[Double]): SparseVector[Double] = t.flatten
+    override def forward(t: CSCMatrix[Double]): SparseVector[Double] = t.flatten()
 
-    override def backward(u: SparseVector[Double]): CSCMatrix[Double] = reshape(u,r, c)
+    override def backward(u: SparseVector[Double]): CSCMatrix[Double] = reshape(u, r, c)
+  }
+
+//  class Iso_M_V[M,V](r: Int, c: Int)(implicit vView: V <:< Vector[Double], mView: M <:< Matrix[Double]) extends Isomorphism[M,V] {
+//    override def forward(t: M): Vector[Double] = t.flatten()
+//
+//    override def backward(u: V): M = reshape(u,r,c)
+//  }
+
+  object Objectives {
+
+
+    class NCABatchObjective[L, T, M](data: Iterable[Example[L, T]])(implicit vspace: MutableInnerProductSpace[T, Double],
+                                                                    mspace: TensorSpace[M, (Int, Int), Double],
+                                                                    opMulMV: OpMulMatrix.Impl2[M, T, T],
+                                                                    viewM: M <:< Matrix[Double],
+                                                                    viewT: T <:< Vector[Double]) extends BatchDiffFunction[M] {
+
+      import mspace._
+
+      val size = data.size
+      val featureSize = data.head.features.length
+      val iData = data.map(_.features).toIndexedSeq
+      val iLabel = data.map(_.label).toIndexedSeq
+
+      override def calculate(A: M, batch: IndexedSeq[Int]): (Double, M) = {
+
+        // shortcut to access indexed data through batch indices
+        val batchData = iData.compose(batch.apply)
+
+        val smNorms =
+          batch.map(i =>
+            (0 until size).withFilter(_ != i).map(k => eNSqProjNorm(iData(i), iData(k), A)).sum)
+
+        val smaxes = Array.tabulate[Double](batch.size, batch.size)((i, k) => {
+          if (i == k) 0.0
+          else eNSqProjNorm(batchData(i), batchData(k), A) / smNorms(i)
+        })
+
+        def term(i: Int, j: Int): M = {
+          val diff = iData(i) - iData(j)
+          val ddt = diff * diff.t
+          (diff * diff.t) * smaxes(i)(j)
+        }
+
+        var value = 0.0
+        val grad = zeros(A)
+        var i = 0
+        while (i < batch.size) {
+          val ind = batch(i)
+
+          var jt = 0
+          while (iLabel(ind) != iLabel(jt)) jt += 1
+          val tt = term(ind, jt)
+          var f = tt
+          var s = tt
+          var p_ind = smaxes(ind)(jt)
+
+          var j = 1
+          while (j < size) {
+            if (j != jt) {
+              val kTerm = term(ind, j)
+              f = f :+ kTerm
+              if (iLabel(ind) == iLabel(j)) {
+                s = s :+ kTerm
+                p_ind += smaxes(ind)(j)
+              }
+            }
+            j += 1
+          }
+          value += p_ind
+          grad :+= ((f :* p_ind) - s)
+
+          i += 1
+        }
+
+        (value,(A :* grad) * -2.0)
+      }
+
+      override def fullRange: IndexedSeq[Int] = 0 until size
+
+      private def eNSqProjNorm(v1: T, v2: T, proj: M): Double = {
+        exp(-pow(norm((proj * v1) - (proj * v2)), 2))
+      }
+    }
+
   }
 
   object DenseObjectives {
@@ -108,6 +194,7 @@ reverse
 
         def term(i: Int, j: Int) = {
           val diff = iData(i) - iData(j)
+          val ddt = diff * diff.t
           diff * diff.t * smaxes(i)(j)
         }
 
@@ -160,7 +247,7 @@ reverse
 
         def term(i: Int, j: Int) = {
           val diff = iData(i) - iData(j)
-          (diff * diff.t) * smaxes(i)(j)
+          (diff.asCSCMatrix().t * diff.t) * smaxes(i)(j)
         }
 
         def scaleNegate(gv: (Double, CSCMatrix[Double])) = (-gv._1, (A * gv._2) * -2.0)
@@ -183,6 +270,7 @@ reverse
 
       override def fullRange: IndexedSeq[Int] = 0 until size
     }
+
   }
 
 }

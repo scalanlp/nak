@@ -20,23 +20,23 @@ object Initializers {
   }
 
   trait CSCInitializer[L,U] extends Initializer[L,SparseVector[Double],CSCMatrix[Double]] {
-    def init(data: Iterable[Example[L, SparseVector[Double]]]): U
+    def init(data: Iterable[Example[L, SparseVector[Double]]]): CSCMatrix[Double]
   }
 
   trait DenseInitializer[L,U] extends Initializer[L,DenseVector[Double],DenseMatrix[Double]] {
-    def init(data: Iterable[Example[L, DenseVector[Double]]]): U
+    def init(data: Iterable[Example[L, DenseVector[Double]]]): DenseMatrix[Double]
   }
 
   object CSCInitializers {
 
-    trait ZeroSparseInitializer[L,S] extends CSCInitializer[L, CSCMatrix[Double]] {
+    trait ZeroSparseInitializer[L] extends CSCInitializer[L, CSCMatrix[Double]] {
       override def init(data: Iterable[Example[L, SparseVector[Double]]]): CSCMatrix[Double] = {
         val fSize = data.head.features.length
         CSCMatrix.zeros[Double](fSize, fSize)
       }
     }
 
-    trait ScaledDiagSparseInitializer[L,S] extends CSCInitializer[L, CSCMatrix[Double]] {
+    trait ScaledDiagSparseInitializer[L] extends CSCInitializer[L, CSCMatrix[Double]] {
       override def init(data: Iterable[Example[L, SparseVector[Double]]]): CSCMatrix[Double] = {
         val fSize = data.head.features.length
         val maxes = new SparseVector[Double](Array.empty,Array.empty[Double],0,fSize)(Zero[Double](Double.NegativeInfinity))
@@ -62,21 +62,21 @@ object Initializers {
 
   object DenseInitializers {
 
-    trait RandDenseInitializer[L,S] extends DenseInitializer[L, DenseMatrix[Double]] {
+    trait RandDenseInitializer[L] extends DenseInitializer[L, DenseMatrix[Double]] {
       override def init(data: Iterable[Example[L, DenseVector[Double]]]): DenseMatrix[Double] = {
         val fSize = data.head.features.length
         DenseMatrix.rand[Double](fSize, fSize) / 50.0
       }
     }
 
-    trait ZeroDenseInitializer[L,S] extends DenseInitializer[L, DenseMatrix[Double]] {
+    trait ZeroDenseInitializer[L] extends DenseInitializer[L, DenseMatrix[Double]] {
       override def init(data: Iterable[Example[L, DenseVector[Double]]]): DenseMatrix[Double] = {
         val fSize = data.head.features.length
         DenseMatrix.zeros[Double](fSize, fSize)
       }
     }
 
-    trait ScaledDiagDenseInitializer[L,S] extends DenseInitializer[L, DenseMatrix[Double]] {
+    trait ScaledDiagDenseInitializer[L] extends DenseInitializer[L, DenseMatrix[Double]] {
       override def init(data: Iterable[Example[L, DenseVector[Double]]]): DenseMatrix[Double] = {
         val fSize = data.head.features.length
         val scaleDiffs = data.map(_.features.toScalaVector())

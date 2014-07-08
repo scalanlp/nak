@@ -1,8 +1,8 @@
 package nak.classify
 
 import breeze.linalg.SparseVector
-import nak.classify.CSCInitializers.ScaledDiagSparseInitializer
 import nak.classify.Classifier.Trainer
+import nak.classify.Initializers.CSCInitializers.ScaledDiagSparseInitializer
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 

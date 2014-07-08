@@ -3,7 +3,7 @@ package nak.classify
 
 import breeze.collection.mutable.Beam
 import breeze.linalg.operators.OpMulMatrix
-import breeze.linalg.support.CanTraverseValues
+import breeze.linalg.support.{CanTranspose, CanTraverseValues}
 import breeze.linalg._
 import breeze.math.{TensorSpace, MutableInnerProductSpace}
 import breeze.optimize.FirstOrderMinimizer.OptParams
@@ -31,6 +31,7 @@ class NCA[L, T, M](examples: Iterable[Example[L, T]], k: Int, A: M)(implicit vsp
                                                                     viewT: T <:< Vector[Double]) extends Classifier[L, T] {
 
   import vspace._
+
   // Iterable of (example, distance) tuples
   type DistanceResult = Iterable[(Example[L, T], Double)]
 
@@ -116,6 +117,8 @@ object NCA {
   class Trainer[L, T, M](opt: OptParams = OptParams(), K: Int = 1)(implicit vspace: MutableInnerProductSpace[T, Double],
                                                                    mspace: TensorSpace[M, (Int, Int), Double],
                                                                    opMulMV: OpMulMatrix.Impl2[M, T, T],
+                                                                   opTrans: CanTranspose[T, T],
+                                                                   opMulVV: OpMulMatrix.Impl2[T, T, M],
                                                                    viewM: M <:< Matrix[Double],
                                                                    viewT: T <:< Vector[Double]) extends Classifier.Trainer[L, T] with LazyLogging {
     self: Initializer[L, T, M] =>
@@ -130,7 +133,7 @@ object NCA {
       logger.debug(s"Initializing Batch Objective")
       val df = new Objectives.NCABatchObjective[L, T, M](data)
 
-//      implicit val mvIso: Iso_M_V[M, T] = new Iso_M_V[M, T](initial.rows, initial.cols)
+      //      implicit val mvIso: Iso_M_V[M, T] = new Iso_M_V[M, T](initial.rows, initial.cols)
 
       logger.debug(s"Optimizing NCA Matrix.")
       val A = opt.minimize(df, initial)
@@ -146,8 +149,6 @@ object NCA {
                         canTraverse: CanTraverseValues[DenseVector[Double], Double],
                         man: ClassTag[DenseVector[Double]]) extends Classifier.Trainer[L, DenseVector[Double]] with LazyLogging {
     self: DenseInitializer[L, DenseMatrix[Double]] =>
-
-    import vspace._
 
     override type MyClassifier = NCA[L, DenseVector[Double], DenseMatrix[Double]]
 
@@ -174,8 +175,6 @@ object NCA {
                          canTraverse: CanTraverseValues[SparseVector[Double], Double],
                          man: ClassTag[SparseVector[Double]]) extends Classifier.Trainer[L, SparseVector[Double]] {
     self: CSCInitializer[L, CSCMatrix[Double]] =>
-
-    import vspace._
 
     override type MyClassifier = NCA[L, SparseVector[Double], CSCMatrix[Double]]
 

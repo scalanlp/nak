@@ -3,7 +3,7 @@ package nak.classify
 
 import breeze.linalg.DenseVector
 import nak.classify.Classifier.Trainer
-import nak.classify.DenseInitializers.ScaledDiagDenseInitializer
+import nak.classify.Initializers.DenseInitializers.ScaledDiagDenseInitializer
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 

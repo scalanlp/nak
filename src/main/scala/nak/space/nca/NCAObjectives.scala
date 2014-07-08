@@ -2,6 +2,7 @@ package nak.space.nca
 
 import breeze.linalg._
 import breeze.linalg.operators.OpMulMatrix
+import breeze.linalg.support.CanTranspose
 import breeze.math.{TensorSpace, Semiring, MutableInnerProductSpace}
 import breeze.numerics._
 import breeze.optimize.{BatchDiffFunction, StochasticDiffFunction}
@@ -32,22 +33,23 @@ object NCAObjectives {
     override def backward(u: SparseVector[Double]): CSCMatrix[Double] = reshape(u, r, c)
   }
 
-//  class Iso_M_V[M,V](r: Int, c: Int)(implicit vView: V <:< Vector[Double], mView: M <:< Matrix[Double]) extends Isomorphism[M,V] {
-//    override def forward(t: M): Vector[Double] = t.flatten()
-//
-//    override def backward(u: V): M = reshape(u,r,c)
-//  }
+  //  class Iso_M_V[M,V](r: Int, c: Int)(implicit vView: V <:< Vector[Double], mView: M <:< Matrix[Double]) extends Isomorphism[M,V] {
+  //    override def forward(t: M): Vector[Double] = t.flatten()
+  //
+  //    override def backward(u: V): M = reshape(u,r,c)
+  //  }
 
   object Objectives {
 
 
     class NCABatchObjective[L, T, M](data: Iterable[Example[L, T]])(implicit vspace: MutableInnerProductSpace[T, Double],
                                                                     mspace: TensorSpace[M, (Int, Int), Double],
+                                                                    opTrans: CanTranspose[T, T],
                                                                     opMulMV: OpMulMatrix.Impl2[M, T, T],
-                                                                    viewM: M <:< Matrix[Double],
-                                                                    viewT: T <:< Vector[Double]) extends BatchDiffFunction[M] {
-
-      import mspace._
+                                                                    opMulVV: OpMulMatrix.Impl2[T, T, M],
+//                                                                    viewM: M <:< Matrix[Double],
+                                                                    viewT: T <:< Vector[Double]
+    ) extends BatchDiffFunction[M] {
 
       val size = data.size
       val featureSize = data.head.features.length
@@ -69,49 +71,43 @@ object NCAObjectives {
         })
 
         def term(i: Int, j: Int): M = {
-          val diff = iData(i) - iData(j)
-          val ddt = diff * diff.t
-          (diff * diff.t) * smaxes(i)(j)
+          val diff = vspace.subVV(iData(i), iData(j))
+          val ddt = opMulVV(diff, opTrans(diff))
+          mspace.mulVS(ddt, smaxes(i)(j))
         }
 
         var value = 0.0
-        val grad = zeros(A)
+        val grad = mspace.zeros(A)
         var i = 0
         while (i < batch.size) {
           val ind = batch(i)
 
-          var jt = 0
-          while (iLabel(ind) != iLabel(jt)) jt += 1
-          val tt = term(ind, jt)
-          var f = tt
-          var s = tt
-          var p_ind = smaxes(ind)(jt)
-
+          var p_ind = 0.0
+          val f = mspace.zeros(A)
+          val s = mspace.zeros(A)
           var j = 1
           while (j < size) {
-            if (j != jt) {
-              val kTerm = term(ind, j)
-              f = f :+ kTerm
-              if (iLabel(ind) == iLabel(j)) {
-                s = s :+ kTerm
-                p_ind += smaxes(ind)(j)
-              }
+            val kTerm = term(ind, j)
+            mspace.addIntoVV(f, kTerm)
+            if (iLabel(ind) == iLabel(j)) {
+              mspace.addIntoVV(s, kTerm)
+              p_ind += smaxes(ind)(j)
             }
             j += 1
           }
           value += p_ind
-          grad :+= ((f :* p_ind) - s)
+          mspace.addIntoVV(grad, mspace.subVV(mspace.mulVS(f, p_ind), s))
 
           i += 1
         }
 
-        (value,(A :* grad) * -2.0)
+        (value, mspace.mulVS(mspace.mulVV(A, grad), -2.0))
       }
 
       override def fullRange: IndexedSeq[Int] = 0 until size
 
       private def eNSqProjNorm(v1: T, v2: T, proj: M): Double = {
-        exp(-pow(norm((proj * v1) - (proj * v2)), 2))
+        exp(-pow(vspace.normImpl(vspace.subVV(opMulMV(proj, v1), opMulMV(proj, v2))), 2))
       }
     }
 

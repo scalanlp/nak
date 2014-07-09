@@ -14,13 +14,13 @@ import org.scalatest.junit.JUnitRunner
  *
  *
  */
-@RunWith(classOf[JUnitRunner])
-class NCAGenSparseClassifierTest
-  extends DenseNearestNeighborTestHarness {
-  var i = 0
-  def trainer[L]: Trainer[L, SparseVector[Double]] = {
-    implicit val mspace = TensorSpace.make[CSCMatrix[Double],(Int,Int),Double]
-    new NCA.Trainer[L, SparseVector[Double], CSCMatrix[Double]]() with ScaledDiagSparseInitializer[L]
-  }
-}
+//@RunWith(classOf[JUnitRunner])
+//class NCAGenSparseClassifierTest
+//  extends DenseNearestNeighborTestHarness {
+//  var i = 0
+//  def trainer[L]: Trainer[L, SparseVector[Double]] = {
+//    implicit val mspace = TensorSpace.make[CSCMatrix[Double],(Int,Int),Double]
+//    new NCA.Trainer[L, SparseVector[Double], CSCMatrix[Double]]() with ScaledDiagSparseInitializer[L]
+//  }
+//}
 

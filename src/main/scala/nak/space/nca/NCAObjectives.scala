@@ -43,13 +43,14 @@ object NCAObjectives {
 
 
     class NCABatchObjective[L, T, M](data: Iterable[Example[L, T]])(implicit vspace: MutableInnerProductSpace[T, Double],
-                                                                    mspace: TensorSpace[M, (Int, Int), Double],
+                                                                    mspace: MutableInnerProductSpace[M, Double],
                                                                     opTrans: CanTranspose[T, T],
                                                                     opMulMV: OpMulMatrix.Impl2[M, T, T],
                                                                     opMulVV: OpMulMatrix.Impl2[T, T, M],
-//                                                                    viewM: M <:< Matrix[Double],
+                                                                    opMulMM: OpMulMatrix.Impl2[M, M, M],
+                                                                    // viewM: M <:< Matrix[Double],
                                                                     viewT: T <:< Vector[Double]
-    ) extends BatchDiffFunction[M] {
+      ) extends BatchDiffFunction[M] {
 
       val size = data.size
       val featureSize = data.head.features.length
@@ -101,7 +102,7 @@ object NCAObjectives {
           i += 1
         }
 
-        (value, mspace.mulVS(mspace.mulVV(A, grad), -2.0))
+        (value, mspace.mulVS(opMulMM(A, grad), -2.0))
       }
 
       override def fullRange: IndexedSeq[Int] = 0 until size

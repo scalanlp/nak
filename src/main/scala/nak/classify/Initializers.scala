@@ -1,6 +1,7 @@
 package nak.classify
 
-import breeze.linalg.{diag,CSCMatrix, SparseVector, DenseMatrix, DenseVector}
+import breeze.linalg.{diag, CSCMatrix, SparseVector, DenseMatrix, DenseVector}
+import breeze.math.{TensorSpace, MutableInnerProductSpace}
 import breeze.storage.Zero
 import nak.data.Example
 
@@ -15,17 +16,25 @@ import scala.reflect.ClassTag
  */
 object Initializers {
 
-  trait Initializer[L,T,U] {
-    def init(data: Iterable[Example[L,T]]): U
+  trait Initializer[L, T, U] {
+    def init(data: Iterable[Example[L, T]]): U
   }
 
-  trait CSCInitializer[L,U] extends Initializer[L,SparseVector[Double],CSCMatrix[Double]] {
+  trait CSCInitializer[L, U] extends Initializer[L, SparseVector[Double], CSCMatrix[Double]] {
     def init(data: Iterable[Example[L, SparseVector[Double]]]): CSCMatrix[Double]
   }
 
-  trait DenseInitializer[L,U] extends Initializer[L,DenseVector[Double],DenseMatrix[Double]] {
+  trait DenseInitializer[L, U] extends Initializer[L, DenseVector[Double], DenseMatrix[Double]] {
     def init(data: Iterable[Example[L, DenseVector[Double]]]): DenseMatrix[Double]
   }
+
+//  trait ZeroInitializer[L, T, U] extends Initializer[L, T, U] {
+//    override def init(data: Iterable[Example[L, T]])(implicit viewT: T <:< Vector[Double],
+//                                                     mspace: TensorSpace[U, (Int,Int), Double]): U = {
+//      val fSize = data.head.features.length
+//      mspace.zeros((fSize,fSize))
+//    }
+//  }
 
   object CSCInitializers {
 
@@ -39,25 +48,26 @@ object Initializers {
     trait ScaledDiagSparseInitializer[L] extends CSCInitializer[L, CSCMatrix[Double]] {
       override def init(data: Iterable[Example[L, SparseVector[Double]]]): CSCMatrix[Double] = {
         val fSize = data.head.features.length
-        val maxes = new SparseVector[Double](Array.empty,Array.empty[Double],0,fSize)(Zero[Double](Double.NegativeInfinity))
-        val mins = new SparseVector[Double](Array.empty,Array.empty[Double],0,fSize)(Zero[Double](Double.PositiveInfinity))
+        val maxes = new SparseVector[Double](Array.empty, Array.empty[Double], 0, fSize)(Zero[Double](Double.NegativeInfinity))
+        val mins = new SparseVector[Double](Array.empty, Array.empty[Double], 0, fSize)(Zero[Double](Double.PositiveInfinity))
 
-        for (ex <- data; (i,d) <- ex.features.activeIterator) {
+        for (ex <- data; (i, d) <- ex.features.activeIterator) {
           if (maxes(i) < d)
-            maxes.update(i,d)
+            maxes.update(i, d)
           if (mins(i) > d)
-            mins.update(i,d)
+            mins.update(i, d)
         }
 
-        val cscBuilder = new CSCMatrix.Builder[Double](fSize,fSize)
+        val cscBuilder = new CSCMatrix.Builder[Double](fSize, fSize)
         val maxI = maxes.activeIterator
         val minI = mins.activeIterator
         for (i <- 0 until fSize) {
-          cscBuilder.add(i,i,1.0 / (maxes(i) - mins(i)))
+          cscBuilder.add(i, i, 1.0 / (maxes(i) - mins(i)))
         }
-        cscBuilder.result(true,true)
+        cscBuilder.result(true, true)
       }
     }
+
   }
 
   object DenseInitializers {
@@ -92,5 +102,7 @@ object Initializers {
         diag(DenseVector(scaleDiffs: _*))
       }
     }
+
   }
+
 }

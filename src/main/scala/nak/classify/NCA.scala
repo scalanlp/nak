@@ -5,7 +5,7 @@ import breeze.collection.mutable.Beam
 import breeze.linalg.operators.OpMulMatrix
 import breeze.linalg.support.{CanTranspose, CanTraverseValues}
 import breeze.linalg._
-import breeze.math.{TensorSpace, MutableInnerProductSpace}
+import breeze.math.{MutableCoordinateSpace, TensorSpace, MutableInnerProductSpace}
 import breeze.optimize.FirstOrderMinimizer.OptParams
 import breeze.optimize._
 import com.typesafe.scalalogging.slf4j.LazyLogging
@@ -115,10 +115,11 @@ object NCA {
   //  }
 
   class Trainer[L, T, M](opt: OptParams = OptParams(), K: Int = 1)(implicit vspace: MutableInnerProductSpace[T, Double],
-                                                                   mspace: TensorSpace[M, (Int, Int), Double],
+                                                                   mspace: MutableCoordinateSpace[M, Double],
                                                                    opMulMV: OpMulMatrix.Impl2[M, T, T],
                                                                    opTrans: CanTranspose[T, T],
                                                                    opMulVV: OpMulMatrix.Impl2[T, T, M],
+                                                                   opMulMM: OpMulMatrix.Impl2[M, M, M],
                                                                    viewM: M <:< Matrix[Double],
                                                                    viewT: T <:< Vector[Double]) extends Classifier.Trainer[L, T] with LazyLogging {
     self: Initializer[L, T, M] =>

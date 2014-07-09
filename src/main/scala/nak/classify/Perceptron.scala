@@ -22,10 +22,10 @@ object Perceptron {
         val l: L = ex.label
         val feats = ex.features
         val ctr = result.scores(feats)
-        if(ctr.size == 0 || argmax(ctr) != l) {
+        if(ctr.size == 0 || ctr.argmax != l) {
           weights(l) += feats
           if(ctr.size != 0) {
-            weights(argmax(ctr)) -= feats
+            weights(ctr.argmax) -= feats
           }
         }
       }
@@ -50,12 +50,12 @@ object Perceptron {
         val l: L = ex.label
         val feats = ex.features
         val ctr = result.scores(feats)
-        if(ctr.size == 0 || argmax(ctr) != l) {
+        if(ctr.size == 0 || ctr.argmax != l) {
           weights(l) += feats
           avgWeights(l) += (feats :* i.toDouble)
           if(ctr.size != 0) {
-            weights(argmax(ctr)) -= feats
-            avgWeights(argmax(ctr)) -= (feats :* i.toDouble)
+            weights(ctr.argmax) -= feats
+            avgWeights(ctr.argmax) -= (feats :* i.toDouble)
           }
         }
       }

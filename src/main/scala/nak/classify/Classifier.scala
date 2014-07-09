@@ -31,7 +31,7 @@ trait Classifier[L, -T] extends (T => L) {  outer =>
   def apply(o: T) = classify(o)
 
   /** Return the most likely label */
-  def classify(o: T) = argmax(scores(o))
+  def classify(o: T) = scores(o).argmax
 
   /** For the observation, return the score for each label that has a nonzero
     * score.

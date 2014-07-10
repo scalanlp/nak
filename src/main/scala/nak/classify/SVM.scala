@@ -23,7 +23,7 @@ import breeze.numerics._
 import breeze.stats.distributions.Rand
 import breeze.math.MutableCoordinateSpace
 import breeze.util.Index
-import com.typesafe.scalalogging.log4j.Logging
+import com.typesafe.scalalogging.slf4j.LazyLogging
 import scala.reflect.ClassTag
 
 
@@ -130,14 +130,14 @@ object SVM {
   def main(args: Array[String]) {
     import nak.data._
 
-    val data = DataMatrix.fromURL(new java.net.URL("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/spam.data"),-1,dropRow = true)
-    var vectors = data.rows.map(e => e map ((a:Seq[Double]) => DenseVector(a:_*)) relabel (_.toInt))
-    vectors = vectors.map { _.map{ v2 => v2 /norm(v2,2) }}
+    val data = DataMatrix.fromURL(new java.net.URL("http://www-stat.stanford.edu/~tibs/ElemStatLearn/datasets/spam.data"),-1,dropRow = true, labelReader = _.toInt)
+    var vectors = data.rows
+    vectors = vectors.map { _.map { v2 => v2 / norm(v2,2) }}
     vectors = Rand.permutation(vectors.length).draw.map(vectors) take 10
 
     println(vectors.length)
 
-    val trainer = new SVM.SMOTrainer[Int,DenseVector[Double]](100) with Logging
+    val trainer = new SVM.SMOTrainer[Int,DenseVector[Double]](100) with LazyLogging
     val classifier = trainer.train(vectors)
     for( ex <- vectors.take(30)) {
       val guessed = classifier.classify(ex.features)
@@ -148,7 +148,7 @@ object SVM {
   class SMOTrainer[L,T](maxIterations: Int=30,
                         C: Double = 10.0)
                        (implicit vspace: MutableCoordinateSpace[T, Double],
-                        man: ClassTag[T]) extends Classifier.Trainer[L,T] with Logging {
+                        man: ClassTag[T]) extends Classifier.Trainer[L,T] with LazyLogging {
     type MyClassifier = LinearClassifier[L,UnindexedLFMatrix[L,T],Counter[L,Double],T]
 
     import vspace._

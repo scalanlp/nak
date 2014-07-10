@@ -1,6 +1,10 @@
-package nak.data;
+package nak.data
+
+;
 
 import java.net.URL;
+import breeze.linalg.DenseVector
+
 import scala.io.Source;
 
 /*
@@ -24,10 +28,12 @@ import scala.io.Source;
  *
  * TODO: change to DenseVector
  */
-trait DataMatrix {
-  def rows: Seq[Example[Double,Seq[Double]]];
-  def row(i: Int) : Example[Double,Seq[Double]] = rows(i);
-  def partition(f: Example[Double,Seq[Double]]=>Boolean) = rows.partition(f);
+trait DataMatrix[L] {
+  def rows: Seq[Example[L, DenseVector[Double]]]
+
+  def row(i: Int): Example[L, DenseVector[Double]] = rows(i)
+
+  def partition(f: Example[L, DenseVector[Double]] => Boolean) = rows.partition(f)
 }
 
 object DataMatrix {
@@ -39,29 +45,31 @@ object DataMatrix {
    * @param separator: a regex for delimeters. Defaults to \\s+
    * @param dropRow: delete the first row
    */
-  def fromURL(url: URL, labelColumn:Int=0, separator: String="\\s+", dropRow: Boolean = false) : DataMatrix = {
-    fromSource(Source.fromURL(url),labelColumn,separator,dropRow);
+  def fromURL[L](url: URL, labelColumn: Int = 0, separator: String = "\\s+", dropRow: Boolean = false,
+                 labelReader: String => L = identity[String] _): DataMatrix[L] = {
+    fromSource[L](Source.fromURL(url), labelColumn, separator, dropRow, labelReader)
   }
 
   /**
    * Reads a DataMatrix from a Source. The DataMatrix format is a space-separated values file of doubles
    * with one column a label column.
-   * @param url: where
+   * @param src: where
    * @param labelColumn which column (starting at 0) is the label. May be negative, in which case it starts from the end.
    * @param separator: a regex for delimeters. Defaults to \\s+
    * @param dropRow: delete the first row
    */
-  def fromSource(src: Source, labelColumn:Int=0, separator: String="\\s+", dropRow: Boolean = false) : DataMatrix = {
+  def fromSource[L](src: Source, labelColumn: Int = 0, separator: String = "\\s+", dropRow: Boolean = false,
+                    labelReader: String => L = identity[String] _): DataMatrix[L] = {
     val rowsIterator = for {
-      (line,i) <- src.getLines().zipWithIndex;
+      (line, i) <- src.getLines().zipWithIndex
       if !dropRow || i != 0
-      allCols = line.split(separator) map (_.toDouble);
-      lbl = allCols(if(labelColumn < 0) allCols.length + labelColumn else labelColumn);
-      dataCols = allCols.patch(labelColumn,Seq.empty,1)
-    } yield Example[Double,Seq[Double]](label=lbl,features=dataCols,id=i.toString);
+      allCols = line.split(separator) //map (_.toDouble)
+      lbl = labelReader(allCols(if (labelColumn < 0) allCols.length + labelColumn else labelColumn))
+      dataCols = DenseVector(allCols.patch(labelColumn, Seq.empty, 1).map(_.toDouble))
+    } yield Example[L, DenseVector[Double]](label = lbl, features = dataCols, id = i.toString)
 
-    new DataMatrix {
-      val rows = rowsIterator.toSeq;
+    new DataMatrix[L] {
+      val rows = rowsIterator.toSeq
     }
   }
 }

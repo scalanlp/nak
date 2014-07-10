@@ -4,7 +4,7 @@ version := "1.3-SNAPSHOT"
 
 organization := "org.scalanlp"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.11.1"
 
 retrieveManaged := true
 
@@ -15,14 +15,15 @@ resolvers ++= Seq(
   "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 )
 
-
 libraryDependencies ++= Seq(
-  "org.scalanlp" %% "breeze" % "0.7",
-  "org.rogach" %% "scallop" % "0.9.4",
-  "com.typesafe" %% "scalalogging-log4j" % "1.0.1",
+  "org.scalanlp" %% "breeze" % "0.8",//.2-SNAPSHOT",
+  "org.scalanlp" %% "breeze-natives" % "0.8",//.2-SNAPSHOT",
+  "org.scalanlp" %% "breeze-config" % "0.8",
+  "org.rogach" %% "scallop" % "0.9.5",
+  "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",
   "org.apache.logging.log4j" % "log4j-core" % "2.0-beta8",
   "org.scalacheck" %% "scalacheck" % "1.11.3" % "test",
-  "org.scalatest" %% "scalatest" % "2.1.0" % "test"
+  "org.scalatest" %% "scalatest" % "2.2.0" % "test"
 )
 
 publishTo <<= version { v: String =>

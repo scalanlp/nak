@@ -20,8 +20,6 @@ import org.scalatest.junit.JUnitRunner
 //  extends DenseNearestNeighborTestHarness {
 //  var i = 0
 //  def trainer[L]: Trainer[L, DenseVector[Double]] = {
-//
-//
 //    new NCA.Trainer[L, DenseVector[Double], DenseMatrix[Double]]() with ScaledDiagDenseInitializer[L]
 //  }
 //}

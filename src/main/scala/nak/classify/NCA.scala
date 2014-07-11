@@ -5,7 +5,7 @@ import breeze.collection.mutable.Beam
 import breeze.linalg.operators.OpMulMatrix
 import breeze.linalg.support.{CanTranspose, CanTraverseValues}
 import breeze.linalg._
-import breeze.math.{MutableCoordinateSpace, TensorSpace, MutableInnerProductSpace}
+import breeze.math.{MutableVectorSpace, MutableCoordinateSpace, TensorSpace, MutableInnerProductSpace}
 import breeze.optimize.FirstOrderMinimizer.OptParams
 import breeze.optimize._
 import com.typesafe.scalalogging.slf4j.LazyLogging
@@ -115,7 +115,7 @@ object NCA {
   //  }
 
   class Trainer[L, T, M](opt: OptParams = OptParams(), K: Int = 1)(implicit vspace: MutableInnerProductSpace[T, Double],
-                                                                   mspace: MutableCoordinateSpace[M, Double],
+                                                                   mspace: MutableVectorSpace[M, Double],
                                                                    opMulMV: OpMulMatrix.Impl2[M, T, T],
                                                                    opTrans: CanTranspose[T, T],
                                                                    opMulVV: OpMulMatrix.Impl2[T, T, M],
@@ -134,10 +134,10 @@ object NCA {
       logger.debug(s"Initializing Batch Objective")
       val df = new Objectives.NCABatchObjective[L, T, M](data)
 
-      //      implicit val mvIso: Iso_M_V[M, T] = new Iso_M_V[M, T](initial.rows, initial.cols)
+//            implicit val mvIso: Iso_M_V[M, T] = new Iso_M_V[M, T](initial.rows, initial.cols)
 
       logger.debug(s"Optimizing NCA Matrix.")
-      val A = opt.minimize(df, initial)
+      val A = initial //opt.minimize(df, initial)
       //      val A = mvIso.backward(opt.minimize[T](df.throughLens[T], mvIso.forward(initial)))
 
       new NCA[L, T, M](data, K, A)

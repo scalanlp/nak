@@ -3,7 +3,7 @@ package nak.space.nca
 import breeze.linalg._
 import breeze.linalg.operators.OpMulMatrix
 import breeze.linalg.support.CanTranspose
-import breeze.math.{TensorSpace, Semiring, MutableInnerProductSpace}
+import breeze.math._
 import breeze.numerics._
 import breeze.optimize.{BatchDiffFunction, StochasticDiffFunction}
 import breeze.util.Isomorphism
@@ -43,7 +43,8 @@ object NCAObjectives {
 
 
     class NCABatchObjective[L, T, M](data: Iterable[Example[L, T]])(implicit vspace: MutableInnerProductSpace[T, Double],
-                                                                    mspace: MutableInnerProductSpace[M, Double],
+//                                                                    mspace: MutableInnerProductSpace[M, Double],
+                                                                    mvspace: MutableVectorSpace[M, Double],
                                                                     opTrans: CanTranspose[T, T],
                                                                     opMulMV: OpMulMatrix.Impl2[M, T, T],
                                                                     opMulVV: OpMulMatrix.Impl2[T, T, M],
@@ -51,6 +52,7 @@ object NCAObjectives {
                                                                     // viewM: M <:< Matrix[Double],
                                                                     viewT: T <:< Vector[Double]
       ) extends BatchDiffFunction[M] {
+
 
       val size = data.size
       val featureSize = data.head.features.length
@@ -74,35 +76,35 @@ object NCAObjectives {
         def term(i: Int, j: Int): M = {
           val diff = vspace.subVV(iData(i), iData(j))
           val ddt = opMulVV(diff, opTrans(diff))
-          mspace.mulVS(ddt, smaxes(i)(j))
+          mvspace.mulVS(ddt, smaxes(i)(j))
         }
 
         var value = 0.0
-        val grad = mspace.zeros(A)
+        val grad = mvspace.zeros(A)
         var i = 0
         while (i < batch.size) {
           val ind = batch(i)
 
           var p_ind = 0.0
-          val f = mspace.zeros(A)
-          val s = mspace.zeros(A)
+          val f = mvspace.zeros(A)
+          val s = mvspace.zeros(A)
           var j = 1
           while (j < size) {
             val kTerm = term(ind, j)
-            mspace.addIntoVV(f, kTerm)
+            mvspace.addIntoVV(f, kTerm)
             if (iLabel(ind) == iLabel(j)) {
-              mspace.addIntoVV(s, kTerm)
+              mvspace.addIntoVV(s, kTerm)
               p_ind += smaxes(ind)(j)
             }
             j += 1
           }
           value += p_ind
-          mspace.addIntoVV(grad, mspace.subVV(mspace.mulVS(f, p_ind), s))
+          mvspace.addIntoVV(grad, mvspace.subVV(mvspace.mulVS(f, p_ind), s))
 
           i += 1
         }
 
-        (value, mspace.mulVS(opMulMM(A, grad), -2.0))
+        (value, mvspace.mulVS(opMulMM(A, grad), -2.0))
       }
 
       override def fullRange: IndexedSeq[Int] = 0 until size

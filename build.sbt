@@ -15,8 +15,8 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "org.scalanlp" %% "breeze" % "0.8.1",
-  "org.scalanlp" %% "breeze-config" % "0.8",
-  "org.scalanlp" %% "breeze-natives" % "0.8",//.2-SNAPSHOT",
+  "org.scalanlp" %% "breeze-config" % "0.8.1-SNAPSHOT",
+  "org.scalanlp" %% "breeze-natives" % "0.8" % "test, runtime",
   "org.rogach" %% "scallop" % "0.9.5",
   "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",
   "org.apache.logging.log4j" % "log4j-core" % "2.0-beta8" % "test, runtime",

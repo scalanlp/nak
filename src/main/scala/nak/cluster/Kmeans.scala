@@ -22,7 +22,8 @@ import breeze.util._
 import breeze.util.Implicits._
 import collection.mutable.ArrayBuffer
 import breeze.stats.distributions.Multinomial
-import com.typesafe.scalalogging.log4j.Logging
+import com.typesafe.scalalogging.slf4j.LazyLogging
+import scala.util.Random
 
 import nak.util.CollectionUtil._
 
@@ -31,7 +32,7 @@ import nak.util.CollectionUtil._
   *  Lloyd's algorithm).
   *
   * @param points	the set of points to be clustered
-  * @param maxChangeInDispersion each iteration of the algorithm produces a dispersion
+  * @param minChangeInDispersion each iteration of the algorithm produces a dispersion
   *    value, which is the squared sum distance from each centroid to the points it is
   *    responsible for. The minChangeInDispersion is a value that tells the algorithm to
   *    stop when change from one iteration to the next is less than this value.
@@ -44,13 +45,13 @@ class Kmeans[T](
   minChangeInDispersion: Double = 0.0001,
   maxIterations: Int = 100,
   fixedSeedForRandom: Boolean = false
-)(implicit space: MutableInnerProductSpace[T, Double]) extends Logging {
+)(implicit space: MutableInnerProductSpace[T, Double]) extends LazyLogging {
   import space._
-  
+
   // Seed with 13 if consistency across runs is required.
-  private[this] val random = 
-    if (fixedSeedForRandom) new util.Random(13)
-    else new util.Random(compat.Platform.currentTime)
+  private[this] val random =
+    if (fixedSeedForRandom) new Random(13)
+    else new Random(compat.Platform.currentTime)
 
   /**
     * Run the k-means algorithm on this set of points for some given k.
@@ -58,7 +59,7 @@ class Kmeans[T](
     * @param k The number of clusters to produce.
     * @param restarts The number of times to run k-means from different random
     *     starting points.
-    * 
+    *
     * @return A pair, the first element of which is the dispersion for the best
     *     set of centroids found, and the second element of which is that set of
     *     centroids.
@@ -151,21 +152,21 @@ object Kmeans {
 
   /**
     * Compute cosine distance: 1-cosine(a,b)
-    */ 
+    */
   val cosineDistance = (a: Vector[Double], b: Vector[Double]) => {
-    1 - (a dot b)/(norm(a, 2)*norm(b, 2))
+    1 - (a dot b)/(norm(a, 2) * norm(b, 2))
   }
-  
+
   /**
     * Compute Manhattan distance (l1 norm).
-    */ 
+    */
   val manhattanDistance = (a: Vector[Double], b: Vector[Double]) => {
     (a-b).norm(1)
   }
 
   /**
     * Compute euclidean distance (l2 norm).
-    */ 
+    */
   val euclideanDistance = (a: Vector[Double], b: Vector[Double]) => {
     norm(a-b, 2)
   }

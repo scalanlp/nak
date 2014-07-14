@@ -8,7 +8,7 @@ import breeze.stats.distributions.{Dirichlet, Bernoulli, Gaussian}
  * 
  * @author dlwh
  */
-class ExpectationPropagation[F,Q](project: (Q,F)=>(Q,Double), criterion: Double = 1E-4)(implicit qFactor: Q <:<Factor[Q]) {
+class ExpectationPropagation[F,Q <: AnyRef](project: (Q,F)=>(Q,Double), criterion: Double = 1E-4)(implicit qFactor: Q <:<Factor[Q]) {
   case class State(f_~ : IndexedSeq[Q], q: Q, prior: Q, partitions: IndexedSeq[Double]) {
     lazy val logPartition = f_~.foldLeft(prior)(_*_).logPartition + partitions.sum
   }

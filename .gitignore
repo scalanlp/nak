@@ -4,5 +4,6 @@ target/
 .classpath
 .cache
 .ensime*
+project/target/
 *~
 TAGS

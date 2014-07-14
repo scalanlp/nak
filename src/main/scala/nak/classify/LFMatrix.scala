@@ -182,10 +182,10 @@ object LFMatrix {
   (implicit op: scaleAdd.InPlaceImpl3[TF, Double, TF], numeric: TF=>NumericOps[TF])
   : scaleAdd.InPlaceImpl3[LFMatrix[L,TF], Double, LFMatrix[L,TF]]  = {
     new scaleAdd.InPlaceImpl3[LFMatrix[L,TF], Double, LFMatrix[L,TF]]  {
-      def apply(v1: LFMatrix[L,TF], a: Double, v2: LFMatrix[L, TF]) {
+      def apply(v2: LFMatrix[L,TF], a: Double, v1: LFMatrix[L, TF]) {
         require(v2.labelIndex == v1.labelIndex)
         for( (tf, l) <- v1.data.zipWithIndex) {
-          axpy(a, v2(l), tf)
+          op(v2(l), a, tf)
         }
 
       }

@@ -6,7 +6,7 @@ organization := "org.scalanlp"
 
 scalaVersion := "2.10.3"
 
-crossScalaVersions  := Seq("2.11.0", "2.10.3")
+crossScalaVersions  := Seq("2.11.1", "2.10.4")
 
 resolvers ++= Seq(
   "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/",
@@ -17,11 +17,10 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.scalanlp" %% "breeze" % "0.8.1",
   "org.scalanlp" %% "breeze-config" % "0.8",
-  "org.rogach" %% "scallop" % "0.9.4",
-  "com.typesafe" %% "scalalogging-log4j" % "1.0.1",
+  "org.rogach" %% "_2.11" % "0.9.5"
   "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",
-  "org.scalacheck" %% "scalacheck" % "1.10.0" % "test",
-  "org.scalatest" %% "scalatest" % "2.0.M5b" % "test"
+  "org.scalatest" %% "scalatest" % "2.1.3" % "test",
+  "org.scalacheck" %% "scalacheck" % "1.11.3" % "test"
 )
 
 publishTo <<= version { v: String =>

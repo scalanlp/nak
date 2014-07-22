@@ -1,7 +1,7 @@
 package nak.classify
 
-import breeze.linalg.{diag, CSCMatrix, SparseVector, DenseMatrix, DenseVector}
-import breeze.math.{TensorSpace, MutableInnerProductSpace}
+import breeze.linalg._
+import breeze.math.{MutableRestrictedDomainTensorField, MutableTensorField, MutableInnerProductModule}
 import breeze.storage.Zero
 import nak.data.Example
 
@@ -16,8 +16,42 @@ import scala.reflect.ClassTag
  */
 object Initializers {
 
-  trait Initializer[L, T, U] {
-    def init(data: Iterable[Example[L, T]]): U
+  trait Initializer[L, T, M] {
+    def init(data: Iterable[Example[L, T]])(implicit vspace: MutableRestrictedDomainTensorField[T,Int,Double],
+                                            mspace: MutableRestrictedDomainTensorField[M,(Int,Int),Double],
+                                            canDiag: diag.Impl[T,M]): M
+  }
+
+  trait ZeroInitializer[L, T, M] extends Initializer[L, T, M] {
+    override def init(data: Iterable[Example[L, T]])(implicit vspace: MutableRestrictedDomainTensorField[T,Int,Double],
+                                                     mspace: MutableRestrictedDomainTensorField[M,(Int,Int),Double],
+                                                     canDiag: diag.Impl[T,M]): M = {
+      import vspace._
+      val fSize = dim(data.head.features)
+      mspace.zero((fSize,fSize))
+    }
+  }
+
+  trait GenericScaledDiagInitializer[L,T,M] extends Initializer[L,T,M] {
+    override def init(data: Iterable[Example[L,T]])(implicit vspace: MutableRestrictedDomainTensorField[T,Int,Double],
+                                                    mspace: MutableRestrictedDomainTensorField[M,(Int,Int),Double],
+                                                    canDiag: diag.Impl[T,M]): M = {
+      import vspace._
+      val fSize = dim(data.head.features)
+
+      var maxes = Map.empty[Int,Double]
+      var mins = Map.empty[Int,Double]
+
+      for (ex <- data; (i, d) <- ex.features.activeIterator) {
+        if (maxes(i) < d)
+          maxes = maxes + (i -> d)
+        if (mins(i) > d)
+          mins = mins + (i -> d)
+      }
+
+      val dg = tabulateTensor(fSize,(i: Int) => 1.0 / (maxes(i) - mins(i)))
+      diag(dg)
+    }
   }
 
   trait CSCInitializer[L, U] extends Initializer[L, SparseVector[Double], CSCMatrix[Double]] {
@@ -27,14 +61,6 @@ object Initializers {
   trait DenseInitializer[L, U] extends Initializer[L, DenseVector[Double], DenseMatrix[Double]] {
     def init(data: Iterable[Example[L, DenseVector[Double]]]): DenseMatrix[Double]
   }
-
-//  trait ZeroInitializer[L, T, U] extends Initializer[L, T, U] {
-//    override def init(data: Iterable[Example[L, T]])(implicit viewT: T <:< Vector[Double],
-//                                                     mspace: TensorSpace[U, (Int,Int), Double]): U = {
-//      val fSize = data.head.features.length
-//      mspace.zeros((fSize,fSize))
-//    }
-//  }
 
   object CSCInitializers {
 

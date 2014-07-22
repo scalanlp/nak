@@ -1,10 +1,10 @@
 package nak.classify
-
+//
 import breeze.linalg.{CSCMatrix, SparseVector, DenseMatrix, DenseVector}
-import breeze.math.{MutableInnerProductSpace, TensorSpace}
 import nak.classify.Classifier.Trainer
 import nak.classify.Initializers.CSCInitializers.ScaledDiagSparseInitializer
 import nak.classify.Initializers.DenseInitializers.ScaledDiagDenseInitializer
+import nak.classify.Initializers.GenericScaledDiagInitializer
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -15,11 +15,12 @@ import org.scalatest.junit.JUnitRunner
  *
  *
  */
-//@RunWith(classOf[JUnitRunner])
-//class NCAGenDenseClassifierTest
-//  extends DenseNearestNeighborTestHarness {
-//  var i = 0
-//  def trainer[L]: Trainer[L, DenseVector[Double]] = {
-//    new NCA.Trainer[L, DenseVector[Double], DenseMatrix[Double]]() with ScaledDiagDenseInitializer[L]
-//  }
-//}
+@RunWith(classOf[JUnitRunner])
+class NCAGenDenseClassifierTest
+  extends DenseNearestNeighborTestHarness {
+  var i = 0
+  def trainer[L]: Trainer[L, DenseVector[Double]] = {
+    import DenseMatrix.FrobeniusInnerProductDenseMatrixSpace._
+    new NCA.Trainer[L, DenseVector[Double], DenseMatrix[Double]]() with GenericScaledDiagInitializer[L,DenseVector[Double],DenseMatrix[Double]]
+  }
+}

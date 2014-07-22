@@ -24,7 +24,7 @@ package nak.space
 import breeze.generic.UFunc
 import breeze.linalg._
 import breeze.linalg.operators.{OpMulInner, OpMulMatrix, OpSub}
-import breeze.math.{Semiring, MutableInnerProductSpace}
+import breeze.math.{Semiring, MutableInnerProductModule}
 import breeze.numerics._
 
 import scala.reflect.ClassTag
@@ -113,7 +113,7 @@ object DMImplicits {
 
   object decomposedMahalanobis extends UFunc {
     //    implicit def decomposedMahalanobisFromLinearTransformationMatrix[T]
-    //    (implicit vspace: MutableInnerProductSpace[T,Double],
+    //    (implicit vspace: MutableInnerProductModule[T,Double],
     //      ev: T <:< Vector[Double]): Impl3[T,T,DenseMatrix[Double],Double] = {
     //      import vspace._
     //      new Impl3[T, T, DenseMatrix[Double], Double] {
@@ -122,7 +122,7 @@ object DMImplicits {
     //        }
     //      }
     //    }
-    implicit def decomposedMahalanobisFromLinearTransformationDense(implicit vspace: MutableInnerProductSpace[DenseVector[Double], Double]):
+    implicit def decomposedMahalanobisFromLinearTransformationDense(implicit vspace: MutableInnerProductModule[DenseVector[Double], Double]):
     Impl3[DenseVector[Double], DenseVector[Double], DenseMatrix[Double], Double] = {
       import vspace._
       new Impl3[DenseVector[Double], DenseVector[Double], DenseMatrix[Double], Double] {
@@ -133,7 +133,7 @@ object DMImplicits {
       }
     }
 
-    implicit def decomposedMahalanobisFromLinTransGen[V, M, T](implicit vspace: MutableInnerProductSpace[V, T],
+    implicit def decomposedMahalanobisFromLinTransGen[V, M, T](implicit vspace: MutableInnerProductModule[V, T],
                                                                opMulMV: OpMulMatrix.Impl2[M, V, V],
                                                                opSubVV: OpSub.Impl2[V, V, V],
                                                                opDotVV: OpMulInner.Impl2[V, V, T],
@@ -150,7 +150,7 @@ object DMImplicits {
       }
     }
 
-    implicit def decomposedMahalanobisFromLinearTransformationSparse(implicit vspace: MutableInnerProductSpace[SparseVector[Double], Double]):
+    implicit def decomposedMahalanobisFromLinearTransformationSparse(implicit vspace: MutableInnerProductModule[SparseVector[Double], Double]):
     Impl3[SparseVector[Double], SparseVector[Double], CSCMatrix[Double], Double] = {
       import vspace._
       new Impl3[SparseVector[Double], SparseVector[Double], CSCMatrix[Double], Double] {

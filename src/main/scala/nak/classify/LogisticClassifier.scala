@@ -22,7 +22,7 @@ import breeze.numerics._
 import nak.data._
 import breeze.optimize._
 import breeze.optimize.FirstOrderMinimizer.OptParams
-import breeze.math.MutableCoordinateSpace
+import breeze.math.MutableVectorField
 import breeze.util.Index
 import scala.reflect.ClassTag
 
@@ -51,7 +51,7 @@ object LogisticClassifier {
    * @tparam TF feature vectors, which are the input vectors to the classifer
    * @return a LinearClassifier based on the fitted model
    */
-  class Trainer[L,TF](opt: OptParams = OptParams())(implicit arith: MutableCoordinateSpace[TF, Double],
+  class Trainer[L,TF](opt: OptParams = OptParams())(implicit arith: MutableVectorField[TF, Double],
                                                     man: ClassTag[TF]) extends Classifier.Trainer[L,TF] {
     import arith._
 
@@ -62,14 +62,14 @@ object LogisticClassifier {
       val labelIndex = Index[L]()
       data foreach { ex => labelIndex.index(ex.label) }
 
-      val guess = new LFMatrix[L,TF](zeros(data.head.features), labelIndex)
+      val guess = new LFMatrix[L,TF](zeroLike(data.head.features), labelIndex)
 
       val obj = new CachedBatchDiffFunction(objective(data.toIndexedSeq, labelIndex))(LFMatrix.canCopy(copy))
 
 //      val adjusted = SecondOrderFunction.empirical(obj)
 //      val adjusted = new FisherDiffFunction(obj)
 //        val weights = new TruncatedNewtonMinimizer[LFMatrix[L, TF], EmpiricalHessian[LFMatrix[L, TF]]](l2Regularization = 1.0).minimize(adjusted, guess)
-      val weights = opt.minimize(obj,guess)(LFMatrix.coordSpace)
+      val weights = opt.minimize(obj,guess)(LFMatrix.space)
 //
 //      val weights = (new LBFGS[LFMatrix[L, TF]]() with ConsoleLogging).minimize(DiffFunction.withL2Regularization(obj, 1.0), guess)
 
@@ -91,7 +91,7 @@ object LogisticClassifier {
       override def calculate(weights: LFMatrix[L,TF], range: IndexedSeq[Int]) = {
         var ll = 0.0
         val grad = weights.empty
-        assert(!breeze.linalg.norm(weights).isNaN, weights)
+        assert(!breeze.linalg.norm.apply[LFMatrix[L,TF],Double,Double](weights,2.0).isNaN, weights)
 
         for( datum <- range.view map data) {
           val logScores: DenseVector[Double] = this.logScores(weights,datum.features)
@@ -107,7 +107,7 @@ object LogisticClassifier {
             axpy(-(I(label == goldLabel) - prob_k), datum.features, grad(label))
           }
         }
-        assert(!breeze.linalg.norm(grad).isNaN, grad)
+        assert(!breeze.linalg.norm.apply[LFMatrix[L,TF],Double,Double](weights,2.0).isNaN, grad)
         grad *= (data.size * 1.0 / range.size)
         ll *= (data.size * 1.0 / range.size)
         (ll,grad)

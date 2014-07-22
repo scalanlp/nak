@@ -21,7 +21,7 @@ import nak.data.Example
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats.distributions.Rand
-import breeze.math.MutableCoordinateSpace
+import breeze.math.MutableVectorField
 import breeze.util.Index
 import com.typesafe.scalalogging.slf4j.LazyLogging
 import scala.reflect.ClassTag
@@ -37,7 +37,7 @@ object SVM {
    * Trains an SVM using the Pegasos Algorithm.
    */
   def apply[L,T](data:Seq[Example[L,T]],numIterations:Int=1000)
-              (implicit vspace: MutableCoordinateSpace[T, Double],
+              (implicit vspace: MutableVectorField[T, Double],
                 man: ClassTag[T]):Classifier[L,T] = {
 
     new SMOTrainer(numIterations).train(data)
@@ -56,7 +56,7 @@ object SVM {
    * @param batchSize: how many elements per minibatch to use.
   class Pegasos[L,T](numIterations: Int,
                     regularization: Double=.1,
-                    batchSize: Int = 100)(implicit vspace : MutableCoordinateSpace[T, Double])extends Classifier.Trainer[L,T] with Logged with ConfiguredLogging {
+                    batchSize: Int = 100)(implicit vspace : MutableVectorField[T, Double])extends Classifier.Trainer[L,T] with Logged with ConfiguredLogging {
      import vspace._
      type MyClassifier = LinearClassifier[L,LFMatrix[L,T],Counter[L,Double],T]
      def train(data: Iterable[Example[L,T]]) = {
@@ -77,7 +77,7 @@ object SVM {
          }
        }
 
-       var w = new LFMatrix[L,T](zeros(dataSeq(0).features))
+       var w = new LFMatrix[L,T](zeroLike(dataSeq(0).features))
        // force one to show up
        w(default)
        for(iter <- 0 until (numIterations * dataSeq.size/batchSize)) {
@@ -147,7 +147,7 @@ object SVM {
 
   class SMOTrainer[L,T](maxIterations: Int=30,
                         C: Double = 10.0)
-                       (implicit vspace: MutableCoordinateSpace[T, Double],
+                       (implicit vspace: MutableVectorField[T, Double],
                         man: ClassTag[T]) extends Classifier.Trainer[L,T] with LazyLogging {
     type MyClassifier = LinearClassifier[L,UnindexedLFMatrix[L,T],Counter[L,Double],T]
 
@@ -156,7 +156,7 @@ object SVM {
     def train(data: Iterable[Example[L, T]]) = {
       val alphas = data.map { d => Counter[L,Double](d.label -> C)}.toArray
       val labelIndex = Index[L](data.map(_.label))
-      val weights = new LFMatrix[L,T](zeros(data.head.features), labelIndex)
+      val weights = new LFMatrix[L,T](zeroLike(data.head.features), labelIndex)
       val allLabels = data.iterator.map(_.label).toSet
       weights(data.head.label); // seed with one label
       var largestChange = 10000.0

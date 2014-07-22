@@ -1,9 +1,8 @@
 package nak.classify
 
 import breeze.linalg.{CSCMatrix, SparseVector}
-import breeze.math.{MutableCoordinateSpace, TensorSpace}
 import nak.classify.Classifier.Trainer
-import nak.classify.Initializers.CSCInitializers.ScaledDiagSparseInitializer
+import nak.classify.Initializers.GenericScaledDiagInitializer
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -14,13 +13,13 @@ import org.scalatest.junit.JUnitRunner
  *
  *
  */
-//@RunWith(classOf[JUnitRunner])
-//class NCAGenSparseClassifierTest
-//  extends DenseNearestNeighborTestHarness {
-//  var i = 0
-//  def trainer[L]: Trainer[L, SparseVector[Double]] = {
-//    implicit val mspace = TensorSpace.make[CSCMatrix[Double],(Int,Int),Double]
-//    new NCA.Trainer[L, SparseVector[Double], CSCMatrix[Double]]() with ScaledDiagSparseInitializer[L]
-//  }
-//}
+@RunWith(classOf[JUnitRunner])
+class NCAGenSparseClassifierTest
+  extends DenseNearestNeighborTestHarness {
+  var i = 0
+  def trainer[L]: Trainer[L, SparseVector[Double]] = {
+    import CSCMatrix.FrobeniusInnerProductCSCMatrixSpace._
+    new NCA.Trainer[L, SparseVector[Double], CSCMatrix[Double]]() with GenericScaledDiagInitializer[L,SparseVector[Double],CSCMatrix[Double]]
+  }
+}
 

@@ -42,20 +42,16 @@ object NCAObjectives {
   object Objectives {
 
 
-    class NCABatchObjective[L, T, M](data: Iterable[Example[L, T]])(implicit vspace: MutableInnerProductSpace[T, Double],
-//                                                                    mspace: MutableInnerProductSpace[M, Double],
-                                                                    mvspace: MutableVectorSpace[M, Double],
-                                                                    opTrans: CanTranspose[T, T],
+    class NCABatchObjective[L, T, M](data: Iterable[Example[L, T]])(implicit vspace: MutableRestrictedDomainTensorField[T, Int, Double],
+                                                                    mvspace: MutableTensorField[M, (Int,Int),Double],
+                                                                    opTrans: CanTranspose[T, Transpose[T]],
                                                                     opMulMV: OpMulMatrix.Impl2[M, T, T],
-                                                                    opMulVV: OpMulMatrix.Impl2[T, T, M],
-                                                                    opMulMM: OpMulMatrix.Impl2[M, M, M],
-                                                                    // viewM: M <:< Matrix[Double],
-                                                                    viewT: T <:< Vector[Double]
+                                                                    opMulVTV: OpMulMatrix.Impl2[T, Transpose[T], M],
+                                                                    opMulMM: OpMulMatrix.Impl2[M, M, M]
       ) extends BatchDiffFunction[M] {
-
-
+      import vspace._
       val size = data.size
-      val featureSize = data.head.features.length
+      val featureSize = dim(data.head.features)
       val iData = data.map(_.features).toIndexedSeq
       val iLabel = data.map(_.label).toIndexedSeq
 
@@ -74,20 +70,19 @@ object NCAObjectives {
         })
 
         def term(i: Int, j: Int): M = {
-          val diff = vspace.subVV(iData(i), iData(j))
-          val ddt = opMulVV(diff, opTrans(diff))
-          mvspace.mulVS(ddt, smaxes(i)(j))
+          val diff = iData(i) - iData(j)
+          mvspace.mulVS((diff * diff.t), smaxes(i)(j))
         }
 
         var value = 0.0
-        val grad = mvspace.zeros(A)
+        val grad = mvspace.zeroLike(A)
         var i = 0
         while (i < batch.size) {
           val ind = batch(i)
 
           var p_ind = 0.0
-          val f = mvspace.zeros(A)
-          val s = mvspace.zeros(A)
+          val f = mvspace.zeroLike(A)
+          val s = mvspace.zeroLike(A)
           var j = 1
           while (j < size) {
             val kTerm = term(ind, j)
@@ -100,10 +95,9 @@ object NCAObjectives {
           }
           value += p_ind
           mvspace.addIntoVV(grad, mvspace.subVV(mvspace.mulVS(f, p_ind), s))
-
           i += 1
         }
-
+        // Is this right? mulVV not mulMM?
         (value, mvspace.mulVS(opMulMM(A, grad), -2.0))
       }
 

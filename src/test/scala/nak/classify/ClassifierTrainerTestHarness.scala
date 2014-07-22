@@ -1,5 +1,6 @@
 package nak.classify
 
+import breeze.math.Field
 import nak.space.DMImplicits
 import DMImplicits.euclidean
 import org.scalatest.FunSuite

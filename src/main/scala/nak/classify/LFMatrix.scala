@@ -1,5 +1,6 @@
 package nak.classify
 
+import breeze.linalg.support.CanTraverseValues.ValuesVisitor
 import breeze.util.{Encoder, Index}
 import breeze.linalg._
 import breeze.linalg.operators._
@@ -7,7 +8,8 @@ import breeze.linalg.support._
 import breeze.generic._
 import nak.serialization.DataSerialization
 import nak.serialization.DataSerialization.ReadWritable
-import breeze.math.{Field, MutableCoordinateSpace, TensorSpace}
+import breeze.math.{MutableTensorField, VectorField, MutableVectorField, Field}
+import scala.collection.Set
 import scala.reflect.ClassTag
 
 /**
@@ -49,6 +51,24 @@ class LFMatrix[L,TF:ClassTag](val data: Array[TF],
   def update(label: Int, tf: TF) = {
     data(label) = tf
   }
+
+//  def size: Int = numLabels
+//
+//  def activeSize: Int = numLabels
+//
+//  def activeIterator: Iterator[(L, TF)] = labelIndex.pairs.map(li => (li._1,data(li._2)))
+//
+//  def activeKeysIterator: Iterator[L] = labelIndex.iterator
+//
+//  def keysIterator: Iterator[L] = labelIndex.iterator
+//
+//  def activeValuesIterator: Iterator[TF] = data.iterator
+//
+//  def iterator: Iterator[(L, TF)] = labelIndex.pairs.map(li => (li._1,data(li._2)))
+//
+//  def valuesIterator: Iterator[TF] = data.iterator
+//
+//  def keySet: Set[L] = labelIndex.pairs.map(_._1).toSet
 
   override def toString = {
     data.mkString("Weight Matrix{\n  ","\n  ","\n}")
@@ -232,6 +252,12 @@ object LFMatrix {
     }
   }
 
+  implicit def canTraverseValues[L,TF,V](implicit iterVals: CanTraverseValues[TF,V]) = new CanTraverseValues[LFMatrix[L,TF],V] {
+    def traverse(from: LFMatrix[L, TF], fn: ValuesVisitor[V]): Unit =
+      from.labelIndex.foreach(l => iterVals.traverse(from(l),fn))
+    def isTraversableAgain(from: LFMatrix[L, TF]): Boolean = true
+  }
+
 
   implicit def canZipMapValues[L,TF, S](implicit cmf: CanZipMapValues[TF,S,S,TF]) = new CanZipMapValues[LFMatrix[L,TF],S,S,LFMatrix[L,TF]] {
     def map(from: LFMatrix[L, TF], other: LFMatrix[L, TF], fn: (S, S) => S) = {
@@ -282,9 +308,9 @@ object LFMatrix {
      }
    }
 
-  implicit def coordSpace[L, V, I](implicit space: MutableCoordinateSpace[V, Double]) = {
-    import space._
-    MutableCoordinateSpace.make[LFMatrix[L,V], Double]
+  implicit def space[L, TF](implicit vspace: MutableVectorField[TF, Double]) = {
+    import vspace._
+    MutableVectorField.make[LFMatrix[L,TF], Double]
   }
 
 

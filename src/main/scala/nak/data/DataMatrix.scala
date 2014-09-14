@@ -26,7 +26,6 @@ import scala.io.Source;
 /**
  * A DataMatrix stores a double-valued label along with the double-valued features that go with it.
  *
- * TODO: change to DenseVector
  */
 trait DataMatrix[L] {
   def rows: Seq[Example[L, DenseVector[Double]]]

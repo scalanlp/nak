@@ -1,9 +1,13 @@
 
-package nak.space.dm
+package nak.space
 
 import breeze.generic.UFunc
 import breeze.linalg._
+import breeze.linalg.operators.{OpMulInner, OpMulMatrix, OpSub}
+import breeze.math.{Semiring, MutableInnerProductModule}
 import breeze.numerics._
+
+import scala.reflect.ClassTag
 
 /**
  * dialogue
@@ -20,6 +24,18 @@ object DMImplicits {
   type mahalanobis = mahalanobis.type
   type manhattan = manhattan.type
   type minkowski = minkowski.type
+  type projectedSquaredNorm = projectedSquaredNorm.type
+
+  object projectedSquaredNorm extends UFunc {
+    implicit def pSqNorm[T, U](implicit mulImpl: OpMulMatrix.Impl2[U, T, T],
+                               subImpl: OpSub.Impl2[T, T, T],
+                               normImpl: norm.Impl[T, Double]): Impl3[T, T, U, Double] =
+      new Impl3[T, T, U, Double] {
+        def apply(v: T, v2: T, proj: U): Double = {
+          pow(norm(subImpl(mulImpl(proj, v), mulImpl(proj, v2))), 2)
+        }
+      }
+  }
 
   object chebyshev extends UFunc {
     implicit def chebyshevDistanceFromZippedValues[T, U]
@@ -74,6 +90,58 @@ object DMImplicits {
       }
   }
 
+
+  object decomposedMahalanobis extends UFunc {
+    //    implicit def decomposedMahalanobisFromLinearTransformationMatrix[T]
+    //    (implicit vspace: MutableInnerProductModule[T,Double],
+    //      ev: T <:< Vector[Double]): Impl3[T,T,DenseMatrix[Double],Double] = {
+    //      import vspace._
+    //      new Impl3[T, T, DenseMatrix[Double], Double] {
+    //        def apply(v: T, v2: T, A: DenseMatrix[Double]): Double = {
+    //          ((A * v) - (A * v2)).t * ((A * v) - (A * v2))
+    //        }
+    //      }
+    //    }
+    implicit def decomposedMahalanobisFromLinearTransformationDense(implicit vspace: MutableInnerProductModule[DenseVector[Double], Double]):
+    Impl3[DenseVector[Double], DenseVector[Double], DenseMatrix[Double], Double] = {
+      import vspace._
+      new Impl3[DenseVector[Double], DenseVector[Double], DenseMatrix[Double], Double] {
+        def apply(v: DenseVector[Double], v2: DenseVector[Double], A: DenseMatrix[Double]): Double = {
+          val c: DenseVector[Double] = (A * v) - (A * v2)
+          c dot c
+        }
+      }
+    }
+
+    implicit def decomposedMahalanobisFromLinTransGen[V, M, T](implicit vspace: MutableInnerProductModule[V, T],
+                                                               opMulMV: OpMulMatrix.Impl2[M, V, V],
+                                                               opSubVV: OpSub.Impl2[V, V, V],
+                                                               opDotVV: OpMulInner.Impl2[V, V, T],
+                                                               // viewM: M <:< Matrix[T],
+                                                               // viewV: V <:< Vector[T],
+                                                               semiring: Semiring[T],
+                                                               man: ClassTag[T]): Impl3[V, V, M, T] = {
+      //      import vspace._
+      new Impl3[V, V, M, T] {
+        def apply(v: V, v2: V, A: M): T = {
+          val c: V = opSubVV(opMulMV(A, v), opMulMV(A, v2))
+          opDotVV(c,c)
+        }
+      }
+    }
+
+    implicit def decomposedMahalanobisFromLinearTransformationSparse(implicit vspace: MutableInnerProductModule[SparseVector[Double], Double]):
+    Impl3[SparseVector[Double], SparseVector[Double], CSCMatrix[Double], Double] = {
+      import vspace._
+      new Impl3[SparseVector[Double], SparseVector[Double], CSCMatrix[Double], Double] {
+        def apply(v: SparseVector[Double], v2: SparseVector[Double], A: CSCMatrix[Double]): Double = {
+          val c = (A * v) - (A * v2)
+          c dot c
+        }
+      }
+    }
+  }
+
   object mahalanobis extends UFunc {
     def requireSymmetricMatrix[V](mat: Matrix[V]): Unit = {
       if (mat.rows != mat.cols)
@@ -125,12 +193,13 @@ object DMImplicits {
       new Impl3[T, U, Double, Double] {
         def apply(v: T, v2: U, v3: Double): Double = {
           var cumul = 0.0
-          zipValues(v,v2).foreach {
-            (a,b) =>
-              cumul += pow(abs(a - b),v3)
+          zipValues(v, v2).foreach {
+            (a, b) =>
+              cumul += pow(abs(a - b), v3)
           }
-          pow(cumul,1/v3)
+          pow(cumul, 1 / v3)
         }
       }
   }
+
 }

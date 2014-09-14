@@ -1,10 +1,13 @@
 package nak.util
 
+import org.junit.runner.RunWith
 import org.scalatest.FunSpec
+import org.scalatest.junit.JUnitRunner
 
 /**
  * Test LocalitySensitiveHash using Twitter data.
- */ 
+ */
+@RunWith(classOf[JUnitRunner])
 class LocalitySensitiveHashSpec extends FunSpec {
 
     describe("Locality Sensitive Hash") {

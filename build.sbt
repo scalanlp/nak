@@ -9,13 +9,14 @@ scalaVersion := "2.11.1"
 crossScalaVersions  := Seq("2.11.1", "2.10.4")
 
 resolvers ++= Seq(
+  Resolver.mavenLocal,
   "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/",
   "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 )
 
 libraryDependencies ++= Seq(
-  "org.scalanlp" %% "breeze" % "0.8.1",
-  "org.scalanlp" %% "breeze-config" % "0.8.1-SNAPSHOT",
+  "org.scalanlp" %% "breeze" % "0.9",
+  "org.scalanlp" %% "breeze-config" % "0.9.1",
   "org.scalanlp" %% "breeze-natives" % "0.8" % "test, runtime",
   "org.rogach" %% "scallop" % "0.9.5",
   "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",

@@ -1,9 +1,12 @@
 package nak.inference.bp
 
+import org.junit.runner.RunWith
 import org.scalatest._
 import breeze.numerics.{I,closeTo}
 import breeze.linalg.DenseMatrix
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class BeliefPropagationTest extends FunSuite {
   test("Simple Test") {
     import SimpleProblem._

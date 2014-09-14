@@ -53,7 +53,7 @@ class KMeansTest extends FunSuite {
       IndexedSeq((0, 0.0, 1, 8.0), (0, 0.0, 2, 9.0), (1, 1.0, 2, 8.0), (0, 1.0, 2, 9.0))
     ).map { cluster =>
       cluster.map { point: (Int, Double, Int, Double) =>
-        new SparseVector(Array(point._1,point._3), Array(point._2, point._4), 3)(breeze.storage.DefaultArrayValue(0.0))
+        new SparseVector(Array(point._1,point._3), Array(point._2, point._4), 3)(breeze.storage.Zero(0.0))
       }
     }
 

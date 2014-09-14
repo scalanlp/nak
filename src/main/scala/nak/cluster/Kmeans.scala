@@ -15,7 +15,7 @@
 */
 package nak.cluster
 
-import breeze.math.{MutableInnerProductSpace, MutableNormedSpace}
+import breeze.math.{MutableInnerProductVectorSpace}
 import breeze.numerics._
 import breeze.linalg._
 import breeze.util._
@@ -45,7 +45,7 @@ class Kmeans[T](
   minChangeInDispersion: Double = 0.0001,
   maxIterations: Int = 100,
   fixedSeedForRandom: Boolean = false
-)(implicit space: MutableInnerProductSpace[T, Double]) extends LazyLogging {
+)(implicit space: MutableInnerProductVectorSpace[T, Double]) extends LazyLogging {
   import space._
 
   // Seed with 13 if consistency across runs is required.
@@ -118,7 +118,7 @@ class Kmeans[T](
     * Given memberships for each point, compute the centroid for each cluster.
     */
   private[this] def computeCentroids(memberships: IndexedSeq[Int], numClusters: Int) = {
-    val centroids = IndexedSeq.fill(numClusters)(zeros(points.head))
+    val centroids = IndexedSeq.fill(numClusters)(zeroLike(points.head))
     val counts = Array.fill(numClusters)(0)
     var index = 0
     while (index < points.length) {

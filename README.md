@@ -29,7 +29,7 @@ In Maven:
     <dependency>
        <groupId>org.scalanlp</groupId>
        <artifactId>nak</artifactId>
-       <version>1.2.1</version>
+       <version>1.3</version>
     </dependency>
 
 

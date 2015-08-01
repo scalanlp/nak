@@ -110,7 +110,7 @@ object DBSCAN {
 
   /**
    * @param epsilon - minimum distance
-   * @param distance - see [[nak.cluster.KMeans]] for distance functions
+   * @param distance - see [[nak.cluster.Kmeans]] for distance functions
    */
   def getNeighbours(epsilon: Double, distance: (DenseVector[Double], DenseVector[Double]) => Double)(point: Point[Double], points: Seq[Point[Double]]): Seq[Point[Double]] = {
     points.filter(neighbour => distance(neighbour.value, point.value) < epsilon)

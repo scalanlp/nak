@@ -28,9 +28,10 @@ class GDBSCANTest extends FlatSpec with Matchers {
     val cluster = gdbscan cluster input
     val clusterPoints = cluster.map(_.points.map(_.value.toArray))
 
-    cluster.size shouldBe 2
+    cluster.size shouldBe 3
     clusterPoints(0) should contain only (Array(0.9, 1.0), Array(1.0, 1.0), Array(1.0, 1.1))
     clusterPoints(1) should contain only (Array(15.0, 15.0), Array(15.0, 14.1), Array(15.3, 15.0))
+    clusterPoints(2) should contain only (Array(5.0,5.0))
   }
 
   it should "work with custom predicates" in {
@@ -55,8 +56,9 @@ class GDBSCANTest extends FlatSpec with Matchers {
     val cluster = gdbscan cluster input
     val clusterPoints = cluster.map(_.points.map(_.value.toArray))
 
-    cluster.size shouldBe 2
+    cluster.size shouldBe 3
     clusterPoints(0) should contain only (Array(1.0), Array(3.0))
     clusterPoints(1) should contain only (Array(2.0), Array(4.0))
+    clusterPoints(2) shouldBe empty
   }
 }

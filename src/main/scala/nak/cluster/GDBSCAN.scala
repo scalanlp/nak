@@ -67,7 +67,7 @@ class GDBSCAN[T](
           clustered add neighbour
         }
         // if the neighbour point is a cluster, join the neighbourhood
-        if (isCorePoint(neighbour, neighbourhood)) neighbourhood ++ newNeighbours else neighbourhood
+        if (isCorePoint(neighbour, newNeighbours)) neighbourhood ++ newNeighbours else neighbourhood
     }
 
   }
